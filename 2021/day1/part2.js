@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var filePath = path.join(__dirname, 'data.txt');
+var filePath = path.join(__dirname, 'testdata.txt');
 var depths = fs.readFileSync(filePath).toString().split("\r\n").map(x=>parseInt(x));
 
 let counter = 0;
