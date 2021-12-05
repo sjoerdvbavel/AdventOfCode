@@ -3,6 +3,7 @@ var path = require('path');
 var filePath = path.join(__dirname, 'data.txt');
 var dataSet = fs.readFileSync(filePath).toString().split("\r\n\r\n");
 
+//Parse the data.
 let unparsedrules = dataSet[0].split("\r\n");
 var myticket = dataSet[1].split("\r\n")[1].split(',').map(x => parseInt(x, 10));
 let nearbytickets = dataSet[2].split("\r\n").slice(1).map(x => x.split(',').map(x => parseInt(x, 10)));
@@ -58,14 +59,16 @@ for (ticket of nearbytickets) {
         validTickets.push(ticket);
     }
 }
-//Returns whether valuetocheck is valid for one or more rules.
+
+
+
+console.log('Number of valid tickets: ' + validTickets.length);
+
+//Returns whether valuetocheck is valid for a rule (checks both sets).
 function CheckRules(valuetocheck, rule) {
     return (valuetocheck >= rule.start1 && valuetocheck <= rule.end1)
         || (valuetocheck >= rule.start2 && valuetocheck <= rule.end2);
 }
-
-
-console.log('Number of valid tickets: ' + validTickets.length);
 
 //Returns all indices for could match this rule for the valid tickets.
 function checkRuleWithIndices(rule, unsolvedIndices, validTickets) {
@@ -84,19 +87,6 @@ function checkRuleWithIndices(rule, unsolvedIndices, validTickets) {
         }
     }
     return possibleIndices;
-}
-function AlternativeParseRule(string) {
-    let sections = string.split(':');
-    let name = sections[0];
-    let numbers = sections[1].split(' ');
-    let range1 = numbers[1].split('-');
-    let range2 = numbers[3].split('-');
-    return { name: name, start1: range1[0], end1: range1[1], start2: range2[0], end2: range2[1] }
-}
-var unsolvedRules = unparsedrules.map(x => AlternativeParseRule(x));
-var unsolvedIndices = [];
-for (var i = 0; i < myticket.length; i++) {
-    unsolvedIndices.push(i);
 }
 
 //Return all rules that could be connect to the indice given the tickets.
@@ -134,6 +124,23 @@ function CheckRuleWithIndices(rule, indices, tickets) {
     }
     return returnindices;
 }
+
+//setup the unsolved lists.
+function AlternativeParseRule(string) {
+    let sections = string.split(':');
+    let name = sections[0];
+    let numbers = sections[1].split(' ');
+    let range1 = numbers[1].split('-');
+    let range2 = numbers[3].split('-');
+    return { name: name, start1: range1[0], end1: range1[1], start2: range2[0], end2: range2[1] }
+}
+var unsolvedRules = unparsedrules.map(x => AlternativeParseRule(x));
+var unsolvedIndices = [];
+for (var i = 0; i < myticket.length; i++) {
+    unsolvedIndices.push(i);
+}
+
+//We loop over all unsolved rules and indices looking for rules that can only match 1 indice or indices that can only match one rule. Eventually we get there.
 var solves = [];
 while (unsolvedIndices.length != 0) {
     let nochange = true;
@@ -167,20 +174,6 @@ while (unsolvedIndices.length != 0) {
     }
 }
 
+//Return the results.
 console.log(solves);
-console.log(solves.filter(x => x.rulename.includes('departure ')).reduce((a, b) => a * b.value, 1));
-// while(unsolvedRules){
-//     for(rule of unsolvedRules){
-//         let optionalIndices = checkRuleWithIndices(rule, unsolvedIndices, validTickets);
-//         if(optionalIndices.length == 1){
-//             let solvedindex = optionalIndices[0];
-//             solvedRules.push({rulename:rule.name, value:myticket[solvedindex]});
-//             unsolvedRules = unparsedrules.filter(x => x.name != rule.name);
-//             unsolvedIndices.splice(unsolvedIndices.indexOf(solvedindex),1);
-//             console.log('Matched rule ' + rule.name + ' with indice '+ solvedindex);
-//             break;
-//         }
-//     }
-// }
-
-// console.log(solvedRules);
+console.log('Product of rules containing departure: ' + solves.filter(x => x.rulename.includes('departure ')).reduce((a, b) => a * b.value, 1));
