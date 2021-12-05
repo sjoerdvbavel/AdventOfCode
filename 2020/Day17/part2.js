@@ -179,13 +179,3 @@ for (i = 0; i < 6; i++) {
     field = GetNewField(field);
 }
 console.log(countLiveCells(field));
-
-
-
-// while (!areFieldsEqual(field, newfield)) {
-//     field = newfield;
-//     newfield = GetNewField(field);
-// }
-// console.log("finalfield");
-// printField(newfield)
-// console.log("Occupied seats: " + countOccupiedSeats(newfield));
