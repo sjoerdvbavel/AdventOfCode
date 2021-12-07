@@ -18,6 +18,9 @@ for (let unparsedrule of unparsedrules) {
 }
 var messages = dataSet[1].split("\r\n");
 
+//change rule 8 and 11:
+parsedrules.set('8', { type: 'pipe', rules: [['42'], ['42', '8']] });
+parsedrules.set('11', { type: 'pipe', rules: [['42', '31'], ['42', '11', '31']] });
 console.log(parsedrules);
 
 
