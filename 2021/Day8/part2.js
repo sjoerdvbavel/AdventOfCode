@@ -78,7 +78,7 @@ function figureOutOutput(string) {
         characterssolution.set('8', findStringsofLength(input, 7)[0]);
 
         //Part b
-        //Get all strings of length 7 (0,6, 9)
+        //Get all strings of length 6 (0,6, 9)
         let partb = findStringsofLength(input, 6);
 
         //We use:

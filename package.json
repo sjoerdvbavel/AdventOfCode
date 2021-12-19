@@ -18,6 +18,8 @@
   "homepage": "https://github.com/sjoerdvbavel/AdventOfCode2020#readme",
   "dependencies": {
     "blueimp-md5": "^2.19.0",
+    "eslint": "^8.4.1",
+    "jslint": "^0.12.1",
     "nodejs-chinese-remainder": "^0.0.6"
   }
 }
