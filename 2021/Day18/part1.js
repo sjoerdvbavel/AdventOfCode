@@ -10,60 +10,38 @@ function addNumbers(array1, array2) {
     let sum = [array1, array2];
     return reduceNumber(sum);
 }
-//Return the leftmost pair 4 levels deep.
-function _getFirstPair4Deep(array) {
-    for (let index1 in array) {
-        let level1
-        if (typeof level1 == 'array') {
-            for (let level2 of array) {
-                if (typeof level2 == 'array') {
-                    for (let level3 of array) {
-                        if (typeof level3 == 'array') {
-                            for (let level4 of array) {
-                                if (typeof level4 == 'array') {
-                                    return [JSON.stringify(array).find(JSON.stringify(level4), level4)];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return null;
-}
-
-function _getFirstNumberOver10(array) {
-    let arraystring = JSON.stringify(array);
-    let numbersover10 = arraystring.match(/(\d+)/g).filter(x => x >= 10);
-    if(numbersover10.length > 0){
-        return arraystring.find(numbersover10[0]);
-    }
-    return -1;
-}
 
 function reduceNumber(array) {
     while(true){
-        a = explodeNumber(array, 0);
-        if(!a.exploded){
-            b = 
+        let exploderesult = explodeNumber(array, 0);
+        if(!exploderesult.exploded){
+            let splitresult = splitNumber(array);
         }
     }
 }
 
+//Function returns:
+//0: boolean whether the number is exploded
+//1: the resulting array
+//2: An array with leftvalue and rightvalue to be added, [add2left, add2right].
 function explodeNumber(array, depth) {
-    if(depth >= 4){
-        return [true, array, array[0], array[1]];
+    if(!Array.isArray(array)){
+        return [false, array]
+    }
+    if(depth >= 4){//If we are 4 layers deep we alreay know the array consists of 2 numbers.
+        return [true, 0, ...array];
     }
 
-    left = explodeNumber({array: object.array[0], })    
-    let returnobject = {array: object.array, }
-    let indexlist = _getFirstPair4Deep(array);
-    if(indexlist != null){//we found a pair 4 lvls deep
-        leftnumber = _getLeftnumber(indexlist);
-
+    let leftresult = explodeNumber(array[0], depth+1);
+    if(leftresult[0]){
+        let returnarrayleft = [leftresult[1],addleft(array[1], leftresult[2][1])],leftresult[2],0]
+        return leftresult[2]?[true, [leftresult[1],rightresult],leftresult[2],0]:[true, [leftresult[1],rightresult]]
     }
-    let leftnumber = 
+    let rightresult = explodeNumber(array[1], depth+1);
+    if(rightresult[0]){
+        let rightresult = rightresult[3]?array[1] + rightresult[3]:array[1];
+        return leftresult[2]?[true, [leftresult[1],rightresult],leftresult[2],0]:[true, [leftresult[1],rightresult]]
+    }
 }
 
 function splitNumber(array) {
