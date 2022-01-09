@@ -3,6 +3,7 @@ var fs = require('fs');
 const { parse } = require('path');
 var path = require('path');
 const { off } = require('process');
+const { start } = require('repl');
 var filePath = path.join(__dirname, 'data.txt');
 var dataset = fs.readFileSync(filePath).toString();
 
@@ -28,10 +29,18 @@ var spots = [{ id: '0', coordinate: 0, neighbours: [1] },
 { id: 'B1', coordinate: 12, neighbours: [4, 16] },
 { id: 'C1', coordinate: 13, neighbours: [6, 17] },
 { id: 'D1', coordinate: 14, neighbours: [8, 18] },
-{ id: 'A2', coordinate: 15, neighbours: [11] },
-{ id: 'B2', coordinate: 16, neighbours: [12] },
-{ id: 'C2', coordinate: 17, neighbours: [13] },
-{ id: 'D2', coordinate: 18, neighbours: [14] }];
+{ id: 'A2', coordinate: 15, neighbours: [11, 19] },
+{ id: 'B2', coordinate: 16, neighbours: [12, 20] },
+{ id: 'C2', coordinate: 17, neighbours: [13, 21] },
+{ id: 'D2', coordinate: 18, neighbours: [14, 22] },
+{ id: 'A3', coordinate: 19, neighbours: [15, 23] },
+{ id: 'B3', coordinate: 20, neighbours: [16, 24] },
+{ id: 'C3', coordinate: 21, neighbours: [17, 25] },
+{ id: 'D3', coordinate: 22, neighbours: [18, 26] },
+{ id: 'A4', coordinate: 23, neighbours: [19] },
+{ id: 'B4', coordinate: 24, neighbours: [20] },
+{ id: 'C4', coordinate: 25, neighbours: [21] },
+{ id: 'D4', coordinate: 26, neighbours: [22] }];
 
 
 
@@ -74,8 +83,19 @@ function getEnergy(spot1, spot2, character) {
     }
 }
 
+//Check whether the spots below a location are a specific letter.
+function _checkHome(location, string, letter) {
+    for (i = location; i < spots.length; i += 4) {
+        if (string[i] != letter) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 function _isValidMove(letter, spot, currentspot, string) {
-    //Check whether meves from the hallway go to the home
+    //Check whether moves from the hallway go to the home
     if (currentspot < 11 && spot < 11) {
         return false;
     }
@@ -86,47 +106,27 @@ function _isValidMove(letter, spot, currentspot, string) {
     }
 
     //Check whether the move doesn't remove a pod in it's place:
-    if (currentspot == 11 && letter == 'A' && string[15] == 'A') {
-        return false;
-    } else if (currentspot == 12 && letter == 'B' && string[16] == 'B') {
-        return false;
-    } else if (currentspot == 13 && letter == 'C' && string[17] == 'C') {
-        return false;
-    } else if (currentspot == 14 && letter == 'D' && string[18] == 'D') {
-        return false;
-    }else if (currentspot == 14 && letter == 'D' && string[18] == 'D') {
-        return false;
-    }else if (currentspot == 15 && letter == 'A') {
-        return false;
-    }else if (currentspot == 16 && letter == 'B') {
-        return false;
-    }else if (currentspot == 17 && letter == 'C') {
-        return false;
-    }else if (currentspot == 18 && letter == 'D') {
-        return false;
+    if (currentspot >= 11) {
+        let supposedLetter = ['A', 'B', 'C', 'D'][(currentspot + 1) % 4];
+        if (string[currentspot] == supposedLetter && _checkHome(currentspot, string, supposedLetter)) {
+            return false;
+        }
     }
 
-    //Check whether the move doesn't block the end of the house.
-    if (spot == 11 && string[15] != 'A') {
-        return false;
-    } else if (spot == 12 && string[16] != 'B') {
-        return false;
-    } else if (spot == 13 && string[17] != 'C') {
-        return false;
-    } else if (spot == 14 && string[18] != 'D') {
-        return false;
+    if (spot >= 11) {
+        let supposedLetter = ['A', 'B', 'C', 'D'][(spot + 1) % 4];
+        //Check whether the move doesn't terminate at the wrong house.
+        if (letter != supposedLetter) {
+            return false;
+        }
+
+        //Check whether the move doesn't block the end of the house.
+        // e.g. 11 can't be A if 15 is still '.'
+        if (!_checkHome(spot + 4, string, supposedLetter)) {
+            return false;
+        }
     }
 
-    //Check whether the move doesn't terminate at the wrong house.
-    if (spot == 11 || spot == 15) {
-        return letter == 'A';
-    } else if (spot == 12 || spot == 16) {
-        return letter == 'B';
-    } else if (spot == 13 || spot == 17) {
-        return letter == 'C';
-    } else if (spot == 14 || spot == 18) {
-        return letter == 'D';
-    }
     return true;
 }
 
@@ -171,24 +171,28 @@ function GetValidMoves(position) {
                 let newstring = position.string;
                 newstring = setCharAt(newstring, location, character);
                 newstring = setCharAt(newstring, cursor, '.');
-                returnlist.push({ value: energy, string: newstring, history: [position.string, ...position.history]});
+                returnlist.push({ value: energy, string: newstring, history: [position.string, ...position.history] });
             }
         }
     }
     return returnlist;
 }
-function printHistory(position){
-    for(positionstring of position.history.reverse()){
-        console.log(positionstring.substring(0,11));
-        console.log('  ' + positionstring[11] + ' ' + positionstring[12]+ ' ' + positionstring[13]+ ' ' + positionstring[14]);
-        console.log('  ' + positionstring[15] + ' ' + positionstring[16]+ ' ' + positionstring[17]+ ' ' + positionstring[18]);
+function printHistory(position) {
+    for (positionstring of position.history.reverse()) {
+        console.log(positionstring.substring(0, 11));
+        for (i = 11; i < spots.length; i += 4) {
+            console.log('  ' + positionstring[i] + ' ' + positionstring[i + 1] + ' ' + positionstring[i + 2] + ' ' + positionstring[i + 3]);
+        }
     }
 }
 
 //Start execute
 //Remove everything not a capital or a '.'.
 var startingposition = dataset.replace(/([^\.A-Z])/g, '');
-var unexploredpositions = [{ value: 0, string: startingposition, history: []}];
+startingposition = startingposition.substring(0, 15) + 'DCBADBAC' + startingposition.substring(15)
+var solutionstring = "...........ABCDABCDABCDABCD";
+
+var unexploredpositions = [{ value: 0, string: startingposition, history: [] }];
 var shortestpaths = { startingposition: 0 }
 var bestSolution = {};
 while (unexploredpositions.length != 0) {
@@ -200,13 +204,13 @@ while (unexploredpositions.length != 0) {
             if (!shortestpaths[newposition.string]) {
                 shortestpaths[newposition.string] = newposition.value;
                 newpositions.push(newposition);
-                if(newposition.string == "...........ABCDABCD"){
+                if (newposition.string == solutionstring) {
                     bestSolution = newposition;
                 }
             } else if (shortestpaths[newposition.string] > newposition.value) {
                 shortestpaths[newposition.string] = newposition.value;
                 newpositions.push(newposition);//If we improve a position we need to improv the follow positions.
-                if(newposition.string == "...........ABCDABCD"){
+                if (newposition.string == solutionstring) {
                     bestSolution = newposition;
                 }
             }
@@ -218,7 +222,7 @@ while (unexploredpositions.length != 0) {
     console.log('finished move');
 }
 console.log('finished.');
-if (shortestpaths["...........ABCDABCD"]) {
-    console.log(`Found a solution with value ${shortestpaths["...........ABCDABCD"]}.`);
+if (shortestpaths[solutionstring]) {
+    console.log(`Found a solution with value ${shortestpaths[solutionstring]}.`);
     printHistory(bestSolution);
 }
