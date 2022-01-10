@@ -1,3 +1,6 @@
+// Attemp no 2, I noticed the input consists of 14 parts that are almost the same. 
+// Each part only depends on the input and the previous z value so we solve backwards.
+
 const { Console } = require('console');
 var fs = require('fs');
 const { parse } = require('path');
@@ -67,75 +70,27 @@ function ExecuteProgram(program, initialstate, input) {
     return { error: false, finalstate: state };
 }
 
-function reduceArray(array) {
-    if (array.length == 0) {
-        return [0];
-    }
-    let lastnumber = array.length - 1;
-    if (array[lastnumber] != 1) {
-        array[lastnumber] = array[lastnumber] - 1;
-        return array;
-    } else {
-        return [...reduceArray(array.slice(0, lastnumber)), 9];
-    }
-}
 
-//Some tests
-console.log(JSON.stringify(ExecuteProgram([['inp', 'x'], ['mul', 'x', '-1']], { w: 0, x: 0, y: 0, z: 0 }, [1])));
-
-//Execute the program.
-
-//Start with a large number:
-
-// var potentialnumber = new Array(14).fill(8);
-
-// while (parseInt(potentialnumber.join(''), 10) > 0) {
-//     var initialstate = { w: 0, x: 0, y: 0, z: 0 };
-//     result = ExecuteProgram(instructions, initialstate, potentialnumber);
-
-//     if (result.error) {
-//         let errorspot = potentialnumber.slice(0, result.errorinput);
-//         potentialnumber = reduceArray(errorspot).concat(new Array(14 - result.errorinput).fill(9));
-//         console.log(`error occured at ${errorspot.join('')}, continue with ${potentialnumber.join('')}. Message: ${result.errormessage}`);
-//     } else {
-//         if (result.finalstate.z == 0) {
-//             console.log(`Found a valid number ${potentialnumber.join('')}`);
-//             break;
-//         } else {
-//             potentialnumber = reduceArray(potentialnumber);
-//             // if ((parseInt(potentialnumber.join(''), 10) - 1) % 10^7 == 0) {
-//                 // console.log(`${potentialnumber.join('')} was invalid, z=${result.finalstate.z}`);
-//             // }
-//         }
-//     }
-// }
-let lastset = instructions.slice(18 * 13, instructions.length);
-let z1sols = [];
-for (let z_rem = 0; z_rem < 26; z_rem++) {
-    for (let z_a = 0; z_a < 100; z_a++) {
-        for (let w = 1; w <= 9; w++) {
-            let ztotal = z_a * 26 + z_rem
-            let result = ExecuteProgram(lastset, { w: 0, x: 0, y: 0, z: ztotal }, [w.toString()]);
-            if (result.finalstate.z == 0) {
-                console.log(`z:${ztotal}, w:${w} ${JSON.stringify(result.finalstate)}`);
-                z1sols.push(ztotal);
+let N = 100000; //The maxvalue of z to search for.	  	
+let results = [{ value: 0, hist: '' }];
+for (let i = 1; i <= 14; i++) {
+    let prevresults = results.slice();
+    results = [];
+    let currentsubprogram = instructions.slice(18 * (14 - i), 18 * (14 - i+1));
+    for (let z_a = 0; z_a < N; z_a++) {
+        for (let z_rem = 0; z_rem < 26; z_rem++) {
+            for (let w = 1; w <= 9; w++) {
+                let ztotal = (z_a * 26) + z_rem
+                let result = ExecuteProgram(currentsubprogram, { w: 0, x: 0, y: 0, z: ztotal }, [w.toString()]);
+                if (prevresults.find(y => y.value == result.finalstate.z)) {
+                    results.push({value:ztotal, hist:w + prevresults.find(y => y.value == result.finalstate.z).hist});
+                }
             }
         }
     }
+    console.log(`Finished iteration ${i}. ${results.length} solutions`);
 }
 
-let second2lastset = instructions.slice(18 * 12, 18 * 13);
-let z2sols = [];
-for (let z_a = 0; z_a < 1000; z_a++) {
-    for (let z_rem = 0; z_rem < 26; z_rem++) {
-        for (let w = 1; w <= 9; w++) {
-            let ztotal = (z_a * 26) + z_rem
-            let result = ExecuteProgram(second2lastset, { w: 0, x: 0, y: 0, z: ztotal }, [w.toString()]);
-            if (z1sols.find(y => result.finalstate.z == y)) {
-                console.log(`z2:${ztotal}, w:${w} ${JSON.stringify(result.finalstate)}`);
-                z2sols.push(ztotal);
-            }
-        }
-    }
-}
-console.log(`${z2sols.length}`)
+let maxresult = Math.max(...results.map(x => parseInt(x.hist,10)));
+let finalinput = maxresult.split('').map(x=> parseInt(x,10));
+console.log(`maxresult: ${maxresult} check: ${ExecuteProgram(instructions, {w:0, x:0, y:0, z:0}, finalinput)}`);
