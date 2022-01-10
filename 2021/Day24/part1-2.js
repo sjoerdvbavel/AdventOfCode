@@ -71,7 +71,7 @@ function ExecuteProgram(program, initialstate, input) {
 }
 
 
-let N = 100000; //The maxvalue of z to search for.	  	
+let N = 100; //The maxvalue of z to search for.	  	
 let results = [{ value: 0, hist: '' }];
 for (let i = 1; i <= 14; i++) {
     let prevresults = results.slice();
@@ -88,7 +88,8 @@ for (let i = 1; i <= 14; i++) {
             }
         }
     }
-    console.log(`Finished iteration ${i}. ${results.length} solutions`);
+    N = 26*Math.max(...results.map(x=>x.value));
+    console.log(`Finished iteration ${i}. ${results.length} solutions, nextN: ${N}`);
 }
 
 let maxresult = Math.max(...results.map(x => parseInt(x.hist,10)));
