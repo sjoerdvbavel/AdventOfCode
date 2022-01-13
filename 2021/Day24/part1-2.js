@@ -88,10 +88,10 @@ for (let i = 1; i <= 14; i++) {
             }
         }
     }
-    N = 26*Math.max(...results.map(x=>x.value));
+    N = Math.max(...results.map(x=>x.value));
     console.log(`Finished iteration ${i}. ${results.length} solutions, nextN: ${N}`);
 }
 
-let maxresult = Math.max(...results.map(x => parseInt(x.hist,10)));
+let maxresult = Math.max(...results.map(x => parseInt(x.hist,10)))*10;
 let finalinput = maxresult.split('').map(x=> parseInt(x,10));
 console.log(`maxresult: ${maxresult} check: ${ExecuteProgram(instructions, {w:0, x:0, y:0, z:0}, finalinput)}`);
