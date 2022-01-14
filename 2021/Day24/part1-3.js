@@ -71,7 +71,8 @@ function ExecuteProgram(program, initialstate, input) {
 }
 
 function testString(string){
-    console.log(JSON.stringify(ExecuteProgram(instructions, { w: 0, x: 0, y: 0, z: 0 }, "99996953827143".split('').map(x=>parseInt(x,10))).state));
+    return JSON.stringify(ExecuteProgram(instructions, { w: 0, x: 0, y: 0, z: 0 }, "99996953827143".split('').map(x=>parseInt(x,10))).state);
+
 }
 
 function reduceArray(array) {
@@ -111,7 +112,7 @@ while (parseInt(potentialnumber.join(''), 10) > 10^13) {
         if(result.state.x != 0 && result.state.x != 1){
             // console.log(`Found x = ${result.state.x} number ${potentialnumber.join('')} at step ${i}.`);
         }
-        if (xcounter > 8) {//I expect the sum of all x'es has to be 6 or less.
+        if (xcounter > 7) {//I expect the sum of all x'es has to be 6 or less.
             potentialnumber = reduceArray(potentialnumber.slice(0, i)).concat(new Array(14 - i).fill(9));
             survived = false;
             break;
@@ -130,7 +131,7 @@ while (parseInt(potentialnumber.join(''), 10) > 10^13) {
         potentialnumber = reduceArray(errorspot).concat(new Array(14 - result.errorinput).fill(9));
         console.log(`error occured at ${errorspot.join('')}, continue with ${potentialnumber.join('')}. Message: ${result.errormessage}`);
     } else if (result.state.z == 0) {
-        console.log(`Found a valid number ${potentialnumber.join('')}. check: ${ExecuteProgram(instructions, { w: 0, x: 0, y: 0, z: 0 }, potentialnumber)}`);
+        console.log(`Found a valid number ${potentialnumber.join('')}. check: ${JSON.stringify(ExecuteProgram(instructions, { w: 0, x: 0, y: 0, z: 0 }, potentialnumber).state)}`);
         break;
     } else {
         if (potentialnumber[0] < leadingdigit) {
