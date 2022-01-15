@@ -183,7 +183,6 @@ unitTest(getLocation([-618, -824, -621], [686, 422, 578], 4), "[68,-1246,-43]");
 unitTest(adjustCoordinates([-618, -824, -621], [68, -1246, -43], 4), "[686,422,578]");
 unitTest(deadjustCoordinates([686, 422, 578], [68, -1246, -43], 4), "[-618,-824,-621]");
 
-console.log('passed unit tests');
 //Return all elements both in array1 and array2
 function OverlapArrays(array1, array2) {
     let returnarray = [];
@@ -191,7 +190,6 @@ function OverlapArrays(array1, array2) {
         for (element2 of array2) {
             if (JSON.stringify(element1) == JSON.stringify(element2)) {
                 returnarray.push(element1);
-                break;
             }
         }
     }
@@ -220,55 +218,29 @@ function doScannersOverlap(scanner1, scanner2) {
     return [false];
 }
 
-// // Test the overlapfunction
-// for(scanner1 of scanners){
-// // let scanner1 = scanners[21];
-// for (scanner2 of scanners) {
-//     let results = doScannersOverlap(scanner1, scanner2);
-//     if (results[0]) {
-//         console.log(`Scanner ${scanner1.id} and scanner ${scanner2.id} overlap.`)
-//     } else{
-//         console.log(`Scanner ${scanner1.id} and scanner ${scanner2.id} don't overlap.`)
-//     }
-// }
-// }
+//Generate an empty matrix
 
-
-//Execute the code....
-
-let startscanner = scanners[0]; //happens to be id 0
-let unlocatedScanners = scanners.slice(1);
-let uncheckedScanners = [startscanner];
-
-let beaconslist = new Set();
-for (beacon of startscanner.beacons) {
-    beaconslist.add(JSON.stringify(beacon));
+let dim = scanners.length;
+let matrix = [];
+for (let i = 0; i < dim; i++) {
+    matrix.push(new Array(dim).fill(0));
 }
 
-while (uncheckedScanners.length != 0) {
-    let nextscanner = uncheckedScanners.pop();
-    let stillUnlocatedscanners = []
-    for (unlocatedScannerindex in unlocatedScanners) {
-        let unlocatedScanner = unlocatedScanners[unlocatedScannerindex];
-        let results = doScannersOverlap(nextscanner, unlocatedScanner);
+// // Test the overlapfunction
+for (scannerindex1 in scanners) {
+    let scanner1 = scanners[scannerindex1];
+    for (scannerindex2 in scanners) {
+        let scanner2 = scanners[scannerindex2];
+        let results = doScannersOverlap(scanner1, scanner2);
         if (results[0]) {
-            //We overwrite the beacons in the new coordinates
-            unlocatedScanner.beacons = results[1];
-
-            //Add the next beacons to the set.
-            for (beacon of unlocatedScanner.beacons) {
-                beaconslist.add(JSON.stringify(beacon));
-            }
-            //Add the found scanner to the list of scanners to search next
-            uncheckedScanners.push(unlocatedScanner);
-
-            console.log(`Scanner ${unlocatedScanner.id} located (with scanner ${nextscanner.id}). Beacons: ${beaconslist.size}`)
+            matrix[scannerindex1][scannerindex2] = 1;
         } else {
-            stillUnlocatedscanners.push(unlocatedScanner);
-            console.log(`Scanner ${nextscanner.id} and scanner ${unlocatedScanner.id} do not match.`);
+            matrix[scannerindex1][scannerindex2] = 0;
         }
     }
-    unlocatedScanners = stillUnlocatedscanners;
-    console.log(`Finished scanning nb of ${nextscanner.id}, unlocated left: ${unlocatedScanners.length})`);
+    console.log(`finished row ${scannerindex1}`);
 }
-console.log(`Search finished, unlocated scanners: ${unlocatedScanners.length}`);
+
+for (row in matrix) {
+    console.log(`${row} ${matrix[row].join('')}`);
+}
