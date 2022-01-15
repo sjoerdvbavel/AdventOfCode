@@ -1,5 +1,6 @@
 //Third way of writing the rotation and rotation inversion.
 
+const { Console } = require('console');
 var fs = require('fs');
 var path = require('path');
 const { off } = require('process');
@@ -14,9 +15,6 @@ for (rawscanner of rawscanners) {
     let id = lines[0].split(' ')[2];
     scanners.push({ id: id, beacons: beacons });
 }
-
-var range = 1000;
-var dir = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0,], [0, 0, 1], [0, 0, -1]];
 
 function _checkRange(spot, location, range) {
     return spot[0] >= location[0] - range && spot[0] < location[0]
@@ -91,7 +89,7 @@ function invertrotation(vector, rotation) {
 function unitTest(array, stringvalue) {
     if (JSON.stringify(array) != stringvalue) {
         console.log(`Test failed ${JSON.stringify(array)} != ${stringvalue}`);
-    }else {}
+    } else { }
 }
 
 let testvector = [1, 2, 3];
@@ -108,34 +106,93 @@ function getLocation(vector1, vector2, rotation) {
     return [l0, l1, l2];
 }
 
+
+//This transforms coordinates from one perspective to the next...
+function adjustCoordinates(vector, location, direction) {
+    let l0 = vector[0] - location[0];
+    let l1 = vector[1] - location[1];
+    let l2 = vector[2] - location[2];
+    return rotateCoordinates([l0, l1, l2], direction);
+}
+//This inverts the previous cooridnation
+function deadjustCoordinates(vector, location, direction) {
+    let invertedvector = invertrotation(vector, direction);
+    let l0 = invertedvector[0] + location[0];
+    let l1 = invertedvector[1] + location[1];
+    let l2 = invertedvector[2] + location[2];
+    return [l0, l1, l2];
+}
+let testlocation = [68, -1246, -43];
 for (let i = 0; i < 24; i++) {
-    var attempt1 = JSON.stringify(getLocation([-618,-824,-621], [686,422,578], i));
-    if(attempt1 != "[68,-1246,-43]"){
-        console.log(`${i} ${attempt1}`);
+    unitTest(deadjustCoordinates(adjustCoordinates(testvector, testlocation, i), testlocation, i), "[1,2,3]");
+    unitTest(adjustCoordinates(deadjustCoordinates(testvector, testlocation, i), testlocation, i), "[1,2,3]");
+}
+
+unitTest(getLocation([-618, -824, -621], [686, 422, 578], 4), "[68,-1246,-43]");
+unitTest(adjustCoordinates([-618, -824, -621], [68, -1246, -43], 4), "[686,422,578]");
+unitTest(deadjustCoordinates([686, 422, 578], [68, -1246, -43], 4), "[-618,-824,-621]");
+
+//Return all elements both in array1 and array2
+function OverlapArrays(array1, array2){
+    let returnarray = [];
+    for(element1 of array1){
+        for(element2 of array2){
+            if(JSON.stringify(element1) == JSON.stringify(element2)){
+                returnarray.push(element1);
+            }
+        }
     }
+    return returnarray;
 }
 
+function doScannersOverlap(scanner1, scanner2) {
+    for (beacon1 of scanner1.beacons) {
+        for (beacon2 of scanner2.beacons) {
+            for (let direction = 0; direction < 24; direction++) {
+                //Get the location between beacon1 and beacon2 with the given direction.
+                let location = getLocation(beacon1, beacon2, direction);
 
+                //Adjust all beacons from scanner2 to the new situation.
+                let Adjustedbeacons = scanner2.beacons.map(y => deadjustCoordinates(y, location, direction));
 
-//Return whether scanner1 and scanner2 overlap
-function checkoverlap(scanner1, scanner2, direction, location) {
-    //Adjust all beacons from scanner2 to the new situation.
-    let Adjustedbeacons = scanner2.map(y => rotateCoordinates(y, location, direction));
+                //Overlap adjustedbeacons and beacons1
+                let overlappingbeacons = OverlapArrays(Adjustedbeacons, scanner1.beacons);
 
-    //Overlap adjustedbeacons and beacons1
-    overlappingbeacons = Adjustedbeacons.filter(function (n) {
-        return scanner1.beacons.indexOf(n) !== -1;
-    });
-    //Count the result.
-    return [overlappingbeacons.length >= 12, Adjustedbeacons];
-}
-
-function findOrientation(scanner1, scanner2) {
-    for (let direction = 0; direction < 24; direction++) {
-        let location = getLocation(vector1, vector2, direction)
-        if (checkoverlap(scanner1, scanner2, direction, location)) {
-            return [true, direction, location];
+                if (overlappingbeacons.length >= 12) {
+                    return [true, Adjustedbeacons, direction, location,];
+                }
+            }
         }
     }
     return [false];
+}
+
+//Test the overlapfunction
+for(scanner1 of scanners){
+    for(scanner2 of scanners){
+        let results = doScannersOverlap(scanner1, scanner2);
+        if (results[0]) {
+            console.log(`Scanner ${scanner1.id} and scanner ${scanner2.id} overlap.`)
+        }
+    }
+}
+
+
+//Execute the code....
+
+let startscanner = scanners[0]; //happens to be id 0
+let unlocatedScanners = scanners.slice(1);
+let uncheckedscanners = [startscanner];
+let beacons = startscanner.beacons;
+
+while (uncheckedscanners.length != 0) {
+    let nextscanner = uncheckedscanners.pop();
+    for (unlocatedScanner of uncheckedscanners) {
+        let results = doScannersOverlap(nextscanner, unlocatedScanner);
+        if (results[0]) {
+            unlocatedScanner.beacons = results[1];
+
+            console.log(`Scanner ${unlocatedScanner.id} and scanner ${nextscanner.id} overlap.`)
+        }
+    }
 }
