@@ -1,6 +1,7 @@
 //Third way of writing the rotation and rotation inversion.
 
 const { Console } = require('console');
+const { performance } = require('perf_hooks');
 var fs = require('fs');
 var path = require('path');
 const { off } = require('process');
@@ -59,9 +60,9 @@ function invertrotation(vector, rotation) {
     } else if (rotation == 15) {
         return [c, -a, -b];
     } else if (rotation == 16) {
-        return [b, -c, a];
+        return [b, c, a];
     } else if (rotation == 17) {
-        return [-b, c, a];
+        return [-b, -c, a];
     } else if (rotation == 18) {
         return [-c, b, a];
     } else if (rotation == 19) {
@@ -119,9 +120,9 @@ function rotateCoordinates(vector, rotation) {
     } else if (rotation == 15) {
         return [-b, -c, a];
     } else if (rotation == 16) {
-        return [c, a, -b];
+        return [c, a, b];
     } else if (rotation == 17) {
-        return [c, -a, b];
+        return [c, -a, -b];
     } else if (rotation == 18) {
         return [c, b, -a];
     } else if (rotation == 19) {
@@ -183,7 +184,6 @@ unitTest(getLocation([-618, -824, -621], [686, 422, 578], 4), "[68,-1246,-43]");
 unitTest(adjustCoordinates([-618, -824, -621], [68, -1246, -43], 4), "[686,422,578]");
 unitTest(deadjustCoordinates([686, 422, 578], [68, -1246, -43], 4), "[-618,-824,-621]");
 
-console.log('passed unit tests');
 //Return all elements both in array1 and array2
 function OverlapArrays(array1, array2) {
     let returnarray = [];
@@ -191,7 +191,6 @@ function OverlapArrays(array1, array2) {
         for (element2 of array2) {
             if (JSON.stringify(element1) == JSON.stringify(element2)) {
                 returnarray.push(element1);
-                break;
             }
         }
     }
@@ -212,7 +211,9 @@ function doScannersOverlap(scanner1, scanner2) {
                 let overlappingbeacons = OverlapArrays(Adjustedbeacons, scanner1.beacons);
 
                 if (overlappingbeacons.length >= 12) {
-                    return [true, Adjustedbeacons, direction, location,];
+                    // console.log(`scanner1: ${scanner1.id} beacon ${JSON.stringify(beacon1)} matches scanner: ${scanner2.id} beacon ${JSON.stringify(beacon2)}`)
+                    return [true, Adjustedbeacons, direction, location];
+
                 }
             }
         }
@@ -239,12 +240,12 @@ function doScannersOverlap(scanner1, scanner2) {
 let startscanner = scanners[0]; //happens to be id 0
 let unlocatedScanners = scanners.slice(1);
 let uncheckedScanners = [startscanner];
-
+let scannerlocations = [JSON.stringify([0,0,0])];
 let beaconslist = new Set();
 for (beacon of startscanner.beacons) {
     beaconslist.add(JSON.stringify(beacon));
 }
-
+var startTime = performance.now();
 while (uncheckedScanners.length != 0) {
     let nextscanner = uncheckedScanners.pop();
     let stillUnlocatedscanners = []
@@ -261,6 +262,7 @@ while (uncheckedScanners.length != 0) {
             }
             //Add the found scanner to the list of scanners to search next
             uncheckedScanners.push(unlocatedScanner);
+            scannerlocations.push(JSON.stringify(results[3]));
 
             console.log(`Scanner ${unlocatedScanner.id} located (with scanner ${nextscanner.id}). Beacons: ${beaconslist.size}`)
         } else {
@@ -269,6 +271,23 @@ while (uncheckedScanners.length != 0) {
         }
     }
     unlocatedScanners = stillUnlocatedscanners;
-    console.log(`Finished scanning nb of ${nextscanner.id}, unlocated left: ${unlocatedScanners.length})`);
+    console.log(`Finished scanning neighbours of ${nextscanner.id}, unlocated left: ${unlocatedScanners.length})`);
 }
 console.log(`Search finished, unlocated scanners: ${unlocatedScanners.length}`);
+var endTime = performance.now();
+
+console.log(`Call took ${Math.floor((endTime - startTime)/60000)} min ${(Math.floor((endTime - startTime)/1000)%60)} sec`);
+
+function Manhattandistance(string1, string2){
+    let vector1 = JSON.parse(string1);
+    let vector2 = JSON.parse(string2);
+    return Math.abs(vector1[0]-vector2[0]) + Math.abs(vector1[1]-vector2[1]) + Math.abs(vector1[2]-vector2[2]);
+}
+let maxdist = 0;
+for(scannerloc1 of scannerlocations){
+    for(scannerloc2 of scannerlocations){
+        dist =  Manhattandistance(scannerloc1, scannerloc2);
+        if(dist > maxdist) maxdist = dist;
+    }
+}
+console.log(`Max distance: ${maxdist}`);

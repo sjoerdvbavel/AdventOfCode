@@ -1,10 +1,11 @@
 //Third way of writing the rotation and rotation inversion.
 
 const { Console } = require('console');
+const { performance } = require('perf_hooks');
 var fs = require('fs');
 var path = require('path');
 const { off } = require('process');
-var filePath = path.join(__dirname, 'data.txt');
+var filePath = path.join(__dirname, 'testdata.txt');
 var rawscanners = fs.readFileSync(filePath).toString().split('\r\n\r\n');
 // Parse scanners
 var scanners = [];
@@ -59,7 +60,7 @@ function invertrotation(vector, rotation) {
     } else if (rotation == 15) {
         return [c, -a, -b];
     } else if (rotation == 16) {
-        return [b, -c, a];
+        return [b, c, a];
     } else if (rotation == 17) {
         return [-b, c, a];
     } else if (rotation == 18) {
@@ -119,7 +120,7 @@ function rotateCoordinates(vector, rotation) {
     } else if (rotation == 15) {
         return [-b, -c, a];
     } else if (rotation == 16) {
-        return [c, a, -b];
+        return [c, a, b];
     } else if (rotation == 17) {
         return [c, -a, b];
     } else if (rotation == 18) {
@@ -210,13 +211,16 @@ function doScannersOverlap(scanner1, scanner2) {
                 let overlappingbeacons = OverlapArrays(Adjustedbeacons, scanner1.beacons);
 
                 if (overlappingbeacons.length >= 12) {
-                    return [true, Adjustedbeacons, direction, location,];
+                    // console.log(`scanner1: ${scanner1.id} beacon ${JSON.stringify(beacon1)} matches scanner: ${scanner2.id} beacon ${JSON.stringify(beacon2)}`)
+                    return [true, direction, location];
+
                 }
             }
         }
     }
     return [false];
 }
+var startTime = performance.now();
 
 //Generate an empty matrix
 
@@ -226,6 +230,12 @@ for (let i = 0; i < dim; i++) {
     matrix.push(new Array(dim).fill(0));
 }
 
+// let a = doScannersOverlap(scanners[0], scanners[7]);
+// let a2 = doScannersOverlap(scanners[7], scanners[0]);
+// console.log(`${JSON.stringify(a)} ${JSON.stringify(a2)}`);
+// let b = doScannersOverlap(scanners[21], scanners[18]);
+// let b2 = doScannersOverlap(scanners[18], scanners[21]);
+// console.log(`${b[0]} ${b2[0]}`);
 // // Test the overlapfunction
 for (scannerindex1 in scanners) {
     let scanner1 = scanners[scannerindex1];
@@ -238,9 +248,25 @@ for (scannerindex1 in scanners) {
             matrix[scannerindex1][scannerindex2] = 0;
         }
     }
-    console.log(`finished row ${scannerindex1}`);
+    console.log(`${scannerindex1} ${matrix[scannerindex1].join('')}`);
 }
 
-for (row in matrix) {
-    console.log(`${row} ${matrix[row].join('')}`);
+for (i = 0; i < scanners.length; i++) {
+    for (j = i; j < scanners.length; j++) {
+        if (matrix[i][j] != matrix[j][i]) {
+            console.log(`${i} ${j} does not match ${j} ${i}`);
+        }
+    }
 }
+var endTime = performance.now();
+
+console.log(`Call took ${(endTime - startTime)/1000} seconds`);
+
+//Check rotations:
+for (let direction = 0; direction < 24; direction++) {
+    console.log(`${rotateCoordinates([1,2,3], direction)} ${invertrotation([1,2,3], direction)}`);
+}
+
+let a = doScannersOverlap(scanners[1], scanners[4]);
+let a2 = doScannersOverlap(scanners[4], scanners[1]);
+console.log(`${JSON.stringify(a)} ${JSON.stringify(a2)}`);
