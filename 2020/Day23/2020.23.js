@@ -4,25 +4,51 @@ function parseData(filename) {
     var filePath = path.join(__dirname, filename);
     var rawDataSet = fs.readFileSync(filePath).toString();
 
-    return rawDataSet.split('').map(x => parseInt(x,10));
+    return rawDataSet.split('').map(x => parseInt(x, 10));
+}
+function SplitCups(cups, value) {
+    if (value + 3 < cups.length) {
+        return [cups.slice(value, value + 3), cups.slice(0, value).concat(cups.slice(value + 3, cups.length))];
+    } else {
+        let a = (value + 3) % cups.length;
+        return [cups.slice(value, cups.length).concat(cups.slice(0, a)), cups.slice(a, value)];
+    }
 }
 
-function playGame(startingcups){
+function nextCup(curr, i) {
+    return (((curr +8 ) - i) % 9) + 1;
+}
+
+function playGame(startingcups, logsteps) {
     let cups = startingcups.slice();
     let currentcup = 0;
 
 
-    for(let i = 0; i < 100; i++){
+    for (let i = 0; i < 100; i++) {
         let currentvalue = cups[currentcup];
-        let pickupcups = cups.slice(currentcup, currentcup + 3);
-        
-
+        let splitcups = SplitCups(cups, currentcup + 1);
+        let nextcup = splitcups[1].findIndex(x => x == nextCup(currentcup, 1) );
+        let i = 1;
+        while (nextcup == -1) {
+            nextcup = splitcups[1].findIndex(x => x == nextCup(currentcup, i));
+            i++;
+        }
+        if (logsteps) {
+            console.log(`cups: ${cups.join(' ')}`)
+            console.log(`Current: ${currentvalue} pick up: ${splitcups[0].join(',')} dest: ${nextcup}`);
+        }
+        currentcup = nextcup;
+        cups = splitcups[1].slice(0, nextcup + 1)
+            .concat(splitcups[0])
+            .concat(splitcups[1].slice(nextcup + 1, splitcups[1].length));
     }
+    return cups;
 }
 
 function executePart1(dataset) {
- 
-    return -1;
+    let result = playGame(dataset, true);
+    let loc = result.findIndex(x => x == 1);
+    return result.slice(loc, result.length).concat(result.slice(0, loc));
 }
 
 function executePart2(dataset) {
