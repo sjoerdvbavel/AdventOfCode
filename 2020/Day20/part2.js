@@ -76,156 +76,111 @@ let product = idblock2matches.reduce((a, b) => a * b);
 
 console.log('number of blocks with 2 matches: ' + JSON.stringify(idblock2matches) + ' product: ' + product);
 
-
-//Let's define a set of orientations:
-// 0 up
-// 1 left
-// 2 down
-// 3 right
-// 4 upf
-// 5 leftf
-// 6 downf
-// 7 rightf
-// So up is regular, upf is regular but flipped (mirrored). The rest follows.
-
-//orient our block:
-function orientBlock(object, orientation) {
-    let oldblock = object.block;
-    if (orientation == 0) {//no twist
-        return oldblock;
-    }
-    let newblock = object;
-    let dim;
-    for (let j = 0; j < oldblock.length; j++) {
-        if (orientation == 1) {//90 degrees clockwise
-            let left = oldblock.map(x => x[j]).join('');
-            newblock.push(left);
-        } else if (orientation == 2) { //180 deg clockwise.
-            newblock.push(oldblock[size - j].split('').reverse().join(''));
-        } else {// 3, 270 degrees clockwise.
-            let right = oldblock.map(x => x[size - j]).reverse().join('');
-            newblock.push(right);
-        }
-    }
-    let newobject = {id: oldblock, };
-    if (orientation == 1) {//90 degrees clockwise
-        newobject.top = oldblock.left;
-        newobject.right = oldblock.top;
-        newobject.down = oldblock.right;
-        newobject.left = oldblock.down;
-        newobject.sides = [oldblock.sides[3], oldblock.sides[0],oldblock.sides[1],oldblock.sides[2]];
-    } else if (orientation == 2) { //180 deg clockwise.
-        newobject.top = oldblock.bottom;
-        newobject.right = oldblock.left;
-        newobject.down = oldblock.top;
-        newobject.left = oldblock.rightdown;
-        newobject.sides = [oldblock.sides[2], oldblock.sides[3],oldblock.sides[0],oldblock.sides[1]];    
-    } else {// 3, 270 degrees clockwise.
-        newobject.top = oldblock.right;
-        newobject.right = oldblock.down;
-        newobject.down = oldblock.right;
-        newobject.left = oldblock.down;
-        newobject.sides = [oldblock.sides[3], oldblock.sides[0],oldblock.sides[1],oldblock.sides[2]];
-    }
-    return newblock;
-}
-
-function flipBlock(block) {
-    return block.reverse();
-}
-
-// Determine the orientation and flip of the block to make the left edge the matching edge.
-function getOrientation(object, matchingEdge) {
-    let reverseEdge = matchingEdge.split('').reverse().join('');
-
-    if (object.edge[3] == matchingEdge) {//matching edge is left edge.
-        return [0, false];
-    } else if (object.edge[2] == matchingEdge) {//matching edge is top edge.
-        return [1, false];
-    } else if (object.edge[1] == matchingEdge) {//matching edge is right edge.
-        return [2, false];
-    } else if (object.edge[4] == matchingEdge) {//matching edge is bottom edge.
-        return [3, false];
-    } else if (object.edge[0] == reverseEdge) {//matching edge is left edge and is reversed.
-        return [0, true];
-    } else if (object.edge[3] == reverseEdge) {//matching edge is top edge and is reversed.
-        return [0, true];
-    } else if (object.edge[2] == reverseEdge) {//matching edge is right edge and is reversed.
-        return [1, true];
-    } else if (object.edge[1] == reverseEdge) {//matching edge is bottom edge and is reversed.
-        return [0, true];
-    } else{
-        console.log(`Found invalid object/rotation combo. ${object.id} edge: ${matchingEdge}.`);
+function unitTest(array, stringvalue) {
+    if (JSON.stringify(array) != stringvalue) {
+        console.log(`Test failed ${JSON.stringify(array)} != ${stringvalue}`);
     }
 }
-
-function getOrientationCorner(object) {
-    let reverseEdge = matchingEdge.split('').reverse().join('');
-
-    if (object.left != 0 && object.top != 0) {//matching edge is left edge.
-        return [0, false];
-    } else if (object.top != 0 && object.right != 0) {//matching edge is top edge.
-        return [1, false];
-    } else if (object.right != 0 && object.down != 0) {//matching edge is right edge.
-        return [2, false];
-    } else if (object.down != 0 && object.left != 0) {//matching edge is bottom edge.
-        return [3, false];
-    } else if (object.left != 0 && object.down != 0) {//matching edge is left edge and is reversed.
-        return [0, true];
-    } else if (object.top != 0 && object.left != 0) {//matching edge is top edge and is reversed.
-        return [0, true];
-    } else if (object.right != 0 && object.top != 0) {//matching edge is right edge and is reversed.
-        return [1, true];
-    } else if (object.down != 0 && object.right != 0) {//matching edge is bottom edge and is reversed.
-        return [0, true];
-    } else{
-        console.log(`Found invalid object/rotation combo. ${object.id} edge: ${matchingEdge}.`);
-    }
-}
-
 function getNextblock(object, direction) {
-    if (direction%4 == 0) {
+    if (direction % 4 == 0) {
         return blocks.find(block => block.id == object.right);
-    } else if (direction%4 == 1) {
+    } else if (direction % 4 == 1) {
         return blocks.find(block => block.id == object.down);
-    } else if (direction%4 == 2) {
+    } else if (direction % 4 == 2) {
         return blocks.find(block => block.id == object.left);
-    } else if (direction%4 == 3) {
+    } else if (direction % 4 == 3) {
         return blocks.find(block => block.id == object.left);
     }
 }
+function rotateBlock(block) {
+    let returnblock = [];
+    for (let j = 0; j < block.length; j++) {
+        let nextrow = block.map(x => x[j]).reverse().join('');
+        returnblock.push(nextrow);
 
+    }
+    return returnblock;
+}
+unitTest(rotateBlock(['*...', '....', '....', '....']), '["...*","....","....","...."]');
+
+//Orient the block so that edge is right with the correct orientation.
+function orientBlock(block, edge) {
+    for (i = 0; i < 4; i++) {
+        let blockedge = block.map(x => x[0]).join('');
+        let reversedblockedge = blockedge.split('').reverse().join('');
+        if (edge == blockedge) {
+            return block;
+        } else if (edge == reversedblockedge) {
+            return block.reverse();
+        }
+        block = rotateBlock(block);
+    }
+}
+
+//Add currentblock to the end of the row with the matching edge.
+function addBlock(row, currentblock) {
+    let rowedge = row.map(x => x.slice(-1)).join('');
+    let orientedblock = orientBlock(currentblock, rowedge);
+    for (j = 0; j < row.length; j++) {
+        row[j] = row[j].substring(0, row[j].length - 1) + orientedblock[j];
+    }
+    return row;
+}
+
+unitTest(addBlock(['.....*', '......', '......', '......'], ['...*', '....', '....', '....']),
+    '[".....*...",".........",".........","........."]');
+    unitTest(addBlock(['.....*', '......', '......', '......'], ['*...', '....', '....', '....']),
+    '[".....*...",".........",".........","........."]');
+
+    unitTest(addBlock(['.....*', '......', '......', '.....*'], ['....', '....', '....', '*..*']),
+    '[".....*...",".........",".........",".....*..."]');
 //Build the actual image...
 //Luckely, there are only blocks with 2, 3 and 4 matches... I'll use every match.
 
-let corners = blocks.filter(x => x.matches == 2);
+var corners = blocks.filter(x => x.matches == 2);
 let edges = blocks.filter(x => x.matches == 3);
 let centers = blocks.filter(x => x.matches == 4);
 console.log(corners.length + ' ' + edges.length + ' ' + centers.length);
 
 
-//f generality, i'm down this specific solution. I've peeked and the orientation of the first block has matches on the right and bottom.
-var startingblock = corners[0];
-
-//Orient the startingblock:
-if(startingblock.top == 0 && startingblock.left == 0){
-    //Do nothing.
-} else if(startingblock.left == 0 && startingblock.down == 0){
-    startingblock = orientBlock(startingblock, 3);
+function getBlock(edge){
+    let regular = blocks.find(x => x.sides.includes(edge));
+    let reversed = blocks.find(x => x.sides.includes(edge.split('').reverse().join('')));
+    return  regular?regular:reversed;
 }
-let lastblock = startingblock;
-let firstblock = startingblock;
-totalblock = [];
+
+function getnextRowBlock(toprow) {
+    let block = getBlock(toprow);
+    let orientedblock = orientBlock(block);
+    return rotateBlock(orientedblock);
+}
+function getNextBlock(rightrow){
+    let block = getBlock(toprow);
+    return orientBlock(block);
+}
+
+function getRightEdge(block){
+    return block.map(x => x.slice(-1)).join('');
+}
+
+//f generality, i'm down this specific solution. I've peeked and the orientation of the first block has matches on the right and bottom.
+//Also, we are using the fact that all matching edges are unique. If pieces match they go together.
+
+let nextedge = rotateBlock(corners[0].block)[0];
+let totalblock = [];
 for (let k = 0; k < 12; k++) {
     //construct the next row:
-    firstblock = getNextblock(firstblock, 2);
-    let currentrow = firstblock.block;
-    let nextblock = getNextblock(firstblock, 1)
+    currentrow = getnextRowBlock(nextedge);
+    nextedge = currentrow[size];
+    nextrightedge = getRightEdge(currentrow);
     for (let l = 1; l < 12; l++) {
-        let nextblock = getNextblock(nextblock, 1)
-        for (let m = 0; m < dim; m++) {
-            currentrow[m] = currentrow[m].concat(nextblock[m]);
-        }
+        nextblock = getNextBlock(nextblock);
+        let currentrow = addBlock(currentrow, nextblock);
+        nextrightedge = getRightEdge(currentrow);
+        console.log(`matched block ${nextblock.id}`);
     }
-    totalblock = totalblock.concat(currentrow);
+    console.log(`finished row`);
+    totalblock = totalblock.slice(0, totalblock.length-1).concat(currentrow);
 }
+
+
