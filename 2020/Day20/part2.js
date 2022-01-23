@@ -143,19 +143,19 @@ let centers = blocks.filter(x => x.matches == 4);
 console.log(corners.length + ' ' + edges.length + ' ' + centers.length);
 
 
-function getBlock(edge){
-    let regular = blocks.find(x => x.sides.includes(edge));
-    let reversed = blocks.find(x => x.sides.includes(edge.split('').reverse().join('')));
-    return  regular?regular:reversed;
+function getBlock(edge, blocklist){
+    let regular = blocklist.findIndex(x => x.sides.includes(edge));
+    let reversed = blocklist.findIndex(x => x.sides.includes(edge.split('').reverse().join('')));
+    return  blocklist.splice(regular?regular:reversed, 1);
 }
 
-function getnextRowBlock(toprow) {
-    let block = getBlock(toprow);
+function getnextRowBlock(toprow, blocklist) {
+    let block = getBlock(toprow, blocklist);
     let orientedblock = orientBlock(block);
     return rotateBlock(orientedblock);
 }
 function getNextBlock(rightrow){
-    let block = getBlock(toprow);
+    let block = getBlock(toprow, blocklist);
     return orientBlock(block);
 }
 
@@ -165,16 +165,21 @@ function getRightEdge(block){
 
 //f generality, i'm down this specific solution. I've peeked and the orientation of the first block has matches on the right and bottom.
 //Also, we are using the fact that all matching edges are unique. If pieces match they go together.
+let startingblock = corners[0];
 
-let nextedge = rotateBlock(corners[0].block)[0];
+let blocklist = blocks.slice();
+let startingblockindex = blocklist.findIndex(x => x.id == startingblock.id);
+blocklist.splice(startingblockindex, 1);
+
+let nextedge = rotateBlock(rotateBlock(startingblock.block))[0];
 let totalblock = [];
 for (let k = 0; k < 12; k++) {
     //construct the next row:
-    currentrow = getnextRowBlock(nextedge);
+    currentrow = getnextRowBlock(nextedge, blocklist);
     nextedge = currentrow[size];
     nextrightedge = getRightEdge(currentrow);
     for (let l = 1; l < 12; l++) {
-        nextblock = getNextBlock(nextblock);
+        nextblock = getNextBlock(nextblock, blocklist);
         let currentrow = addBlock(currentrow, nextblock);
         nextrightedge = getRightEdge(currentrow);
         console.log(`matched block ${nextblock.id}`);
