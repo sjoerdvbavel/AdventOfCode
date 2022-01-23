@@ -16,7 +16,11 @@ function SplitCups(cups, value) {
 }
 
 function nextCup(curr, i) {
-    return (((curr +8 ) - i) % 9) + 1;
+    if(curr - i > 0){
+        return curr - i;
+    } else{
+        return curr - i + 9;//Should be enough...
+    }
 }
 
 function playGame(startingcups, logsteps) {
@@ -24,23 +28,25 @@ function playGame(startingcups, logsteps) {
     let currentcup = 0;
 
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 10; i++) {
         let currentvalue = cups[currentcup];
         let splitcups = SplitCups(cups, currentcup + 1);
-        let nextcup = splitcups[1].findIndex(x => x == nextCup(currentcup, 1) );
-        let i = 1;
-        while (nextcup == -1) {
-            nextcup = splitcups[1].findIndex(x => x == nextCup(currentcup, i));
-            i++;
+        let destinationcup = splitcups[1].findIndex(x => x == nextCup(currentvalue, 1) );
+        let j = 1;
+        while (destinationcup == -1) {
+            destinationcup = splitcups[1].findIndex(x => x == nextCup(currentvalue, j));
+            j++;
         }
         if (logsteps) {
+            console.log(`-- move ${i+1} --`)
             console.log(`cups: ${cups.join(' ')}`)
-            console.log(`Current: ${currentvalue} pick up: ${splitcups[0].join(',')} dest: ${nextcup}`);
+            console.log(`Current: ${currentvalue} pick up: ${splitcups[0].join(',')} dest: ${splitcups[1][destinationcup]}`);
         }
-        currentcup = nextcup;
-        cups = splitcups[1].slice(0, nextcup + 1)
+        cups = splitcups[1].slice(0, destinationcup + 1)
             .concat(splitcups[0])
-            .concat(splitcups[1].slice(nextcup + 1, splitcups[1].length));
+            .concat(splitcups[1].slice(destinationcup + 1, splitcups[1].length));
+        currentcup = currentcup+1%cups.length;
+
     }
     return cups;
 }
@@ -67,16 +73,16 @@ function execute() {
     if (testresult2) {
         console.log(`testdata part2: ${testresult2}`);
     }
-    let realdata1 = parseData('data.txt');
-    let result1 = executePart1(realdata1);
-    if (result1) {
-        console.log(`part1: ${result1}`);
-    }
-    let realdata2 = parseData('data.txt');
-    let result2 = executePart2(realdata2);
-    if (testresult2) {
-        console.log(`part2: ${result2}`);
-    }
+    // let realdata1 = parseData('data.txt');
+    // let result1 = executePart1(realdata1);
+    // if (result1) {
+    //     console.log(`part1: ${result1}`);
+    // }
+    // let realdata2 = parseData('data.txt');
+    // let result2 = executePart2(realdata2);
+    // if (testresult2) {
+    //     console.log(`part2: ${result2}`);
+    // }
 }
 
 execute();
