@@ -97,13 +97,12 @@ function rotateBlock(block) {
     for (let j = 0; j < block.length; j++) {
         let nextrow = block.map(x => x[j]).reverse().join('');
         returnblock.push(nextrow);
-
     }
     return returnblock;
 }
 unitTest(rotateBlock(['*...', '....', '....', '....']), '["...*","....","....","...."]');
 
-//Orient the block so that edge is right with the correct orientation.
+//Orient the block so that edge matches with the right side of block
 function orientBlock(block, edge) {
     for (i = 0; i < 4; i++) {
         let blockedge = block.map(x => x[0]).join('');

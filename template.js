@@ -1,3 +1,9 @@
+function unitTest(array, stringvalue) {
+    if (JSON.stringify(array) != stringvalue) {
+        console.log(`Test failed ${JSON.stringify(array)} != ${stringvalue}`);
+    }
+}
+
 function parseData(filename) {
     var fs = require('fs');
     var path = require('path');

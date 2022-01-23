@@ -112,7 +112,7 @@ function RotatePuzzlePiece(block) {
 function getPuzzlePieceByID(id) {
     return blocks.find(x => x.id == id);
 }
-let startingblock = corners[0];
+let startingblock = corners[1]; //Handpicked, happens to have edges right and down.
 
 function orientPuzzlePiece(block, topnb, leftnb) {
     if (block.top == topnb && block.left == leftnb) {
