@@ -55,9 +55,12 @@ function playGame(startingcups, NumberOfMoves, logsteps) {
         nextcup = cupobject;
     }
     //Link the cups to the lower cup.
-    cupobjects.sort((a, b) => parseInt(b.id, 10) - parseInt(a.id, 10));
-    for (cupindex in cupobjects) {
+    cupobjects.sort((a, b) => b.id - a.id);
+    for (cupindex = 0; cupindex < cupobjects.length; cupindex++) {
         cupobjects[cupindex].lower = cupobjects[(cupindex + 1) % cupobjects.length];
+        // if(cupobjects[cupindex].id-1 != cupobjects[cupindex].lower.id){
+        //     console.log(`fml, ${cupobjects[cupindex].id} is not ${cupobjects[cupindex].lower.id}`)
+        // }
     }
     let currentcup = firstcup;
     for (let i = 0; i < NumberOfMoves; i++) {
@@ -82,6 +85,10 @@ function playGame(startingcups, NumberOfMoves, logsteps) {
         let oldnext = destinationcup.next;
         destinationcup.next = pickedupcups[0];
         pickedupcups[pickedupcups.length - 1].next = oldnext;
+        
+        // if (pickedupcups.find(x => x.id == 934001 || x.id == 159792 || x.id == 1)) {
+        //     console.log(`Turn ${i + 1} Picked up: ${pickedupcups.map(x => x.id).join(',')}, curr: ${currentcup.id} dest: ${destinationcup.id}, followed by: ${pickedupcups.at(-1).next.id}`)
+        // }
 
         //Set the next currentcup
         currentcup = currentcup.next;
@@ -96,7 +103,7 @@ function playGame(startingcups, NumberOfMoves, logsteps) {
 }
 
 function executePart1(dataset) {
-    let result = playGame(dataset, 100, true);
+    let result = playGame(dataset, 100, false);
     firstcup = result[0];
     nextcup = firstcup;
     let finalcuporder = [nextcup.id];
