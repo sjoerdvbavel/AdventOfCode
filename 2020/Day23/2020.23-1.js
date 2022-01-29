@@ -19,68 +19,106 @@ function SplitCups(cups, value) {
 }
 
 function nextCup(curr, i) {
-    if(curr - i > 0){
+    if (curr - i > 0) {
         return curr - i;
-    } else{
+    } else {
         return curr - i + 9;//Should be enough...
     }
 }
 
-function playGame(startingcups, logsteps) {
+
+function printCups(cups, currentcup, offset) {
+    let firstcup = currentcup;
+    let nextcup = firstcup;
+    let cupsarray = [nextcup == currentcup ? `(${nextcup.id})` : `${nextcup.id}`];
+    while (nextcup.next != firstcup) {
+        nextcup = nextcup.next;
+        cupsarray.push(nextcup == currentcup ? `(${nextcup.id})` : ` ${nextcup.id}`);
+    }
+    offsetmod = offset % cupsarray.length;
+    cupsstring = cupsarray.slice(cupsarray.length - offsetmod, cupsarray.length).concat(cupsarray.slice(0, cupsarray.length - offsetmod)).join(' ');
+    console.log(`cups: ${cupsstring}`)
+}
+
+function playGame(startingcups, NumberOfMoves, logsteps) {
     //buildcupobjects
-    let firstcup = {id: startingcups[0]};
-    let prev = firstcup;
-    cupobjects.push(firstcup);
+    let firstcup = { id: startingcups[0] };
     var cupobjects = [];
-    for(cupnumber = 1; cupnumber< startingcups.length; cupnumber++){
-        let newcup = {id: startingcups[cupnumber], prev:prev};
-        prev = newcup;
+    cupobjects.push(firstcup);
+    for (cupnumber = 1; cupnumber < startingcups.length; cupnumber++) {
+        let newcup = { id: startingcups[cupnumber] };
         cupobjects.push(newcup);
     }
-    firstcup[prev] = prev;
-
+    let nextcup = cupobjects[0];
+    for (cupobject of cupobjects.reverse()) {
+        cupobject.next = nextcup;
+        nextcup = cupobject;
+    }
     //Link the cups to the lower cup.
-    cupobjects.sort((a,b) => a.id - b.id);
-    for(cupindex in cupobjects){
-        cupobjects[cupindex].lower = cupobjects[(cupindex+1)%cupindex.length];
+    cupobjects.sort((a, b) => parseInt(b.id, 10) - parseInt(a.id, 10));
+    for (cupindex in cupobjects) {
+        cupobjects[cupindex].lower = cupobjects[(cupindex + 1) % cupobjects.length];
+    }
+    let currentcup = firstcup;
+    for (let i = 0; i < NumberOfMoves; i++) {
+        if (logsteps && i <= 10) {
+            console.log(`-- move ${i + 1} --`)
+            printCups(cupobjects, currentcup, i);
+        }
+        let pickedupcups = [];
+        let cup = currentcup.next;
+        for (let pickupcups = 0; pickupcups < 3; pickupcups++) {
+            pickedupcups.push(cup)
+            cup = cup.next;
+        }
+        currentcup.next = cup;
+        //Get the destinationcup.
+        let destinationcup = currentcup.lower;
+        while (pickedupcups.includes(destinationcup)) {
+            destinationcup = destinationcup.lower;
+        }
+
+        //Place the pickedupcups.
+        let oldnext = destinationcup.next;
+        destinationcup.next = pickedupcups[0];
+        pickedupcups[pickedupcups.length - 1].next = oldnext;
+
+        //Set the next currentcup
+        currentcup = currentcup.next;
+        if (logsteps && i <= 10) {
+            console.log(`pick up: ${pickedupcups.map(x => x.id).join(',')}`);
+            console.log(`destination: ${destinationcup.id}`);
+        }
     }
 
-    
-    let currentcup = 0;
 
-
-    for (let i = 0; i < 10; i++) {
-        let currentvalue = cups[currentcup];
-        let splitcups = SplitCups(cups, currentcup + 1);
-        let destinationcup = splitcups[1].findIndex(x => x == nextCup(currentvalue, 1) );
-        let j = 1;
-        while (destinationcup == -1) {
-            destinationcup = splitcups[1].findIndex(x => x == nextCup(currentvalue, j));
-            j++;
-        }
-        if (logsteps) {
-            console.log(`-- move ${i+1} --`)
-            console.log(`cups: ${cups.join(' ')}`)
-            console.log(`Current: ${currentvalue} pick up: ${splitcups[0].join(',')} dest: ${splitcups[1][destinationcup]}`);
-        }
-        cups = splitcups[1].slice(0, destinationcup + 1)
-            .concat(splitcups[0])
-            .concat(splitcups[1].slice(destinationcup + 1, splitcups[1].length));
-        currentcup = currentcup+1%cups.length;
-
-    }
-    return cups;
+    return cupobjects;
 }
 
 function executePart1(dataset) {
-    let result = playGame(dataset, true);
-    let loc = result.findIndex(x => x == 1);
-    return result.slice(loc, result.length).concat(result.slice(0, loc));
+    let result = playGame(dataset, 100, true);
+    firstcup = result[0];
+    nextcup = firstcup;
+    let finalcuporder = [nextcup.id];
+    while (nextcup.next != firstcup) {
+        nextcup = nextcup.next;
+        finalcuporder.push(nextcup.id)
+    }
+    let loc = finalcuporder.findIndex(x => x == 1);
+    return finalcuporder.slice(loc + 1, finalcuporder.length).concat(finalcuporder.slice(0, loc)).join('');
 }
 
 function executePart2(dataset) {
+    let nmbrcups = 1000000;
+    let nmbrmoves = 10000000;
+    let totaldataset = dataset.concat(Array.from(Array(nmbrcups + 1).keys()).slice(dataset.length + 1, nmbrcups + 1));
+    let result = playGame(totaldataset, nmbrmoves, false);
 
-    return -1;
+    let loc = result.findIndex(x => x.id == 1);
+    nextno = result[loc].next;
+    nextno2 = nextno.next;
+    console.log(`next: ${nextno.id}, next2: ${nextno2.id}`);
+    return nextno.id * nextno2.id;
 }
 
 function execute() {
@@ -94,16 +132,16 @@ function execute() {
     if (testresult2) {
         console.log(`testdata part2: ${testresult2}`);
     }
-    // let realdata1 = parseData('data.txt');
-    // let result1 = executePart1(realdata1);
-    // if (result1) {
-    //     console.log(`part1: ${result1}`);
-    // }
-    // let realdata2 = parseData('data.txt');
-    // let result2 = executePart2(realdata2);
-    // if (testresult2) {
-    //     console.log(`part2: ${result2}`);
-    // }
+    let realdata1 = parseData('data.txt');
+    let result1 = executePart1(realdata1);
+    if (result1) {
+        console.log(`part1: ${result1}`);
+    }
+    let realdata2 = parseData('data.txt');
+    let result2 = executePart2(realdata2);
+    if (testresult2) {
+        console.log(`part2: ${result2}`);
+    }
 }
 
 execute();
