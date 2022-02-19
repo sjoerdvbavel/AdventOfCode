@@ -1,3 +1,5 @@
+const { isGeneratorFunction } = require('util/types');
+
 function unitTest(array, stringvalue) {
     if (JSON.stringify(array) != stringvalue) {
         console.log(`Test failed ${JSON.stringify(array)} != ${stringvalue}`);
@@ -14,10 +16,22 @@ function parseData(filename) {
     for (line of rawDataSet[0].split("\r\n")) {
         let splits = line.split(' => ');
         // rules.push({replace:splits[0].toLowerCase(), by: splits[1].toLowerCase() });
-        rules.push({replace:splits[0], by: splits[1] });
+        rules.push({ replace: splits[0], by: splits[1] });
     }
 
     return [rules, rawDataSet[1]];
+}
+
+function reduceMolecule(molecule, rules, set, maxlength) {
+    for (rule of rules) {
+        let finds = [...molecule.matchAll(new RegExp(rule.by, 'g'))].map(a => a.index)
+        for (find of finds) {
+            let pre = molecule.substring(0, find);
+            let post = molecule.substring(find + rule.by.length, molecule.length);
+            let newword = pre + rule.replace + post
+            set.add((newword));
+        }
+    }
 }
 
 function executePart1(dataset) {
@@ -25,34 +39,60 @@ function executePart1(dataset) {
     let startingMol = dataset[1];
     let newMols = new Set();
 
-    for(rule of rules){
-        finds = [...startingMol.matchAll(new RegExp(rule.replace, 'gi'))].map(a => a.index)
-        for(find of finds){
+    for (rule of rules) {
+        finds = [...startingMol.matchAll(new RegExp(rule.replace, 'g'))].map(a => a.index)
+        for (find of finds) {
             let pre = startingMol.substring(0, find);
             let post = startingMol.substring(find + rule.replace.length, startingMol.length);
-            let beforelength = newMols.size;
-            newMols.add((pre + rule.by + post).toLowerCase());
-
-            if(beforelength != newMols.size){
-                console.log(`Replaced ${rule.replace} with ${rule.by} at ${find} result was new.`)
-            } else{
-                console.log(`Replaced ${rule.replace} with ${rule.by} at ${find} result was old.`)
-            } 
-            if(startingMol.length - rule.replace.length + rule.by.length != (pre + rule.by + post).length){
-                console.log(`Error, lengths don't match. ${startingMol.length - rule.replace.length + rule.by.length} != ${(pre + rule.by + post).length}`);
-            }
+            newMols.add((pre + rule.by + post));
         }
     }
-    console.log(JSON.stringify(Array.from(newMols).slice(0,5)));
+    // console.log(JSON.stringify(Array.from(newMols).slice(0,5)));
     return newMols.size;
 }
 
 function executePart2(dataset) {
+    let rules = dataset[0];
+    let destination = 'e';
+    //A set with reached stuff
+    let reachedMolecules = new Set();
+    reachedMolecules.add(dataset[1]);
+    //A set with stuff to explore
+    let MoleculesToExplore = new Set();
+    MoleculesToExplore.add(dataset[1]);
 
-    return -1;
+    let generation = 0;
+    while (true) {
+        let results = new Set();
+        for (molecule of MoleculesToExplore) {
+            reduceMolecule(molecule, rules, results);
+        }
+        generation++;
+
+        MoleculesToExplore = new Set();
+        for (item of results) {
+            if(item == destination){
+                return generation;
+            } else if (!reachedMolecules.has(item) && item.search('e') == -1) {
+                reachedMolecules.add(item);
+                MoleculesToExplore.add(item);
+            } else {
+                console.log(`skipped ${item}`);
+            }
+        }
+
+        // if(generation < 5){
+        console.log(`Guus' request: ${generation} ${MoleculesToExplore.size}`);
+        // }
+        if (reachedMolecules.has(destination)) {
+            return generation;
+        } else if (reachedMolecules.size == 0) {
+            return -2;
+        }
+    }
 }
 
-function execute(){ 
+function execute() {
     const { performance } = require('perf_hooks');
 
     let testdata1 = parseData('testdata.txt');
@@ -62,7 +102,7 @@ function execute(){
     if (testresult1) {
         console.log(`testdata part1: ${testresult1} (${Math.round(endtd1 - starttd1)} ms)`);
     }
-    
+
     let testdata2 = parseData('testdata.txt');
     var starttd2 = performance.now();
     let testresult2 = executePart2(testdata2);
