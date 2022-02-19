@@ -75,7 +75,7 @@ function executePart1(dataset) {
     let numbersnocals = dataset.map(x => x.slice(0, x.length-1));
     let options = getSums(100, dataset.length);
     let scores = options.map(x=>calcScore(x, numbersnocals));
-
+    // return Math.max(...scores);
     return findMax(scores);
 }
 
@@ -97,7 +97,7 @@ function executePart2(dataset) {
     return findMax(scores);
 }
 
-function execute(){ 
+function execute(){
     const { performance } = require('perf_hooks');
 
     let testdata1 = parseData('testdata.txt');
@@ -122,6 +122,8 @@ function execute(){
     var endd1 = performance.now();
     if (result1) {
         console.log(`part1: ${result1} (${Math.round(endd1 - startd1)} ms)`);
+    } else {
+        console.log(`No result1, Guus heeft gelijk.`);
     }
 
     let realdata2 = parseData('data.txt');
@@ -130,6 +132,8 @@ function execute(){
     var endd2 = performance.now();
     if (result2) {
         console.log(`part2: ${result2} (${Math.round(endd2 - startd2)} ms)`);
+    }else {
+        console.log(`No result2, Guus heeft gelijk.`);
     }
 }
 
