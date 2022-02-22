@@ -22,11 +22,6 @@ function parseData(filename) {
     return [rules, rawDataSet[1]];
 }
 
-//Expand the rules so can do multiple steps in one...
-function expandRules(root, rules){
-
-}
-
 function reduceMolecule(molecule, rules, set, maxlength) {
     for (rule of rules) {
         let finds = [...molecule.matchAll(new RegExp(rule.by, 'g'))].map(a => a.index)
@@ -38,10 +33,7 @@ function reduceMolecule(molecule, rules, set, maxlength) {
         }
     }
 }
-
-function executePart1(dataset) {
-    let rules = dataset[0];
-    let startingMol = dataset[1];
+function getNext(startingMol, rules) {
     let newMols = new Set();
 
     for (rule of rules) {
@@ -53,63 +45,88 @@ function executePart1(dataset) {
         }
     }
     // console.log(JSON.stringify(Array.from(newMols).slice(0,5)));
-    return newMols.size;
+    return newMols;
 }
 
+function getPrev(startingMol, rules) {
+    let newMols = new Set();
 
-function removeCa(molecule, CaRules){
-    
-    for (rule of CaRules) {
-        let finds = [...molecule.matchAll(new RegExp(rule.by, 'g'))].map(a => a.index)
+    for (rule of rules) {
+        finds = [...startingMol.matchAll(new RegExp(rule.by, 'g'))].map(a => a.index)
         for (find of finds) {
-            let pre = molecule.substring(0, find);
-            let post = molecule.substring(find + rule.by.length, molecule.length);
-            let newword = pre + rule.replace + post
-            set.add((newword));
+            let pre = startingMol.substring(0, find);
+            let post = startingMol.substring(find + rule.by.length, startingMol.length);
+            newMols.add((pre + rule.replace + post));
         }
     }
+    // console.log(JSON.stringify(Array.from(newMols).slice(0,5)));
+    return newMols;
+}
+function executePart1(dataset) {
+    let rules = dataset[0];
+    let startingMol = dataset[1];
+
+    return getNext(startingMol, rules).size;
 }
 
+
+
+//Return wether a word is worth exploring more, may be expanded
+function isInteresting(word) {
+    //'e' cannot be replaced by something else so eveything with e and length != 1 is a dead end.
+    if (word.length > 1 && word.search('e') != -1) {
+        return false;
+    }
+    return true;
+}
+
+function hasAr(word){
+    return word.search('e') != -1;
+}
+
+//So since we are memory bound and we 
+function exploreTreeRecursively(word, rules, exploredset, steps, ArFreeReported) {
+    // console.log(`started exploring ${word}`);
+    if (word == 'e') {
+        return [true, 0, [word]];
+    } else if (exploredset.has(word)) {
+        return [false];
+    }
+    let newwords = getPrev(word, rules);
+    for (let newword of newwords) {
+        if (isInteresting(newword) && !exploredset.has(word)) {
+            if(!ArFreeReported && !hasAr(newword)){
+                console.log(`Ar-free word found: ${newword}, steps ${}, suggested total: `)
+            let result = exploreTreeRecursively(newword, rules, exploredset, true);
+            } else{
+                let result = exploreTreeRecursively(newword, rules, exploredset, steps + 1, ArFreeReported);
+            }
+            // console.log(`explored ${newword}`);
+            if (result[0]) {
+                return [true, result[1] + 1, result[2].concat(word)];
+            } else {
+                exploredset.add(newword);
+                if(exploredset.size % 1000000 == 0){
+                    console.log(`${exploredset.size} currentword: ${newword}`);
+                }
+            }
+        }
+    }
+    return [false];
+}
 
 function executePart2(dataset) {
     let rules = dataset[0];
+    let start = dataset[1];
     let destination = 'e';
-    // let rules = expandRules('e', firstrules);
-    //A set with reached stuff
-    let reachedMolecules = new Set();
-    reachedMolecules.add(dataset[1]);
-    //A set with stuff to explore
-    let MoleculesToExplore = new Set();
-    MoleculesToExplore.add(dataset[1]);
+    let Molecules = new Set();
 
-    let generation = 0;
-    while (true) {
-        let results = new Set();
-        for (molecule of MoleculesToExplore) {
-            reduceMolecule(molecule, rules, results);
-        }
-        generation++;
-
-        MoleculesToExplore = new Set();
-        for (item of results) {
-            if(item == destination){
-                return generation;
-            } else if (!reachedMolecules.has(item) && item.search('e') == -1) {
-                reachedMolecules.add(item);
-                MoleculesToExplore.add(item);
-            } else {
-                console.log(`skipped ${item}`);
-            }
-        }
-
-        // if(generation < 5){
-        console.log(`Guus' request: ${generation} ${MoleculesToExplore.size}`);
-        // }
-        if (reachedMolecules.has(destination)) {
-            return generation;
-        } else if (reachedMolecules.size == 0) {
-            return -2;
-        }
+    let result = exploreTreeRecursively(start, rules, Molecules, 0, false);
+    if (result[0]) {
+        console.log(`Found solution, ${JSON.stringify(result[2])}`);
+        return result[1];
+    } else {
+        console.log(`Search finished, no result found`);
     }
 }
 
