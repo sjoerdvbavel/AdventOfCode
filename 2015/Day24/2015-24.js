@@ -18,40 +18,39 @@ function parseData(filename) {
     return dataset;
 }
 const arrayWithoutElementAtIndex = function (arr, index) {
-    return arr.slice(0, index).concat(arr.slice(index + 1))
+    return arr.slice(0, index).concat(arr.slice(parseInt(index) + 1));
 }
-function* allSets(items, weights){
-    if(weights.length == 0){
-        return empty;
+function allSets(items, weights) {
+    if (weights.length == 0) {
+        return [[[]]];
     }
-    for(let itemindex in items){
-        if(items[itemindex] == weights[0]){
-            let generatormatch = allSets(arrayWithoutElementAtIndex(items, itemindex), weights.slice(1));
-            for(set of generatormatch){
-                yield [item].concat(set);
-            }
-        } else if(items[itemindex] < weights[0]){
+    let returnset = [];
+    for (let itemindex in items) {
+        if (items[itemindex] == weights[0]) {
+            let setsnewbins = allSets(arrayWithoutElementAtIndex(items, itemindex), weights.slice(1));
+            returnset.concat(setsnewbins.map(set => set[0].push(items[itemindex])));
+        } else if (items[itemindex] < weights[0]) {
             let newweights = weights.slice();
             newweights[0] -= items[itemindex];
-            let generatormatch = allSets(arrayWithoutElementAtIndex(items, itemindex), newweights);
-            for(set of generatormatch){
-                set[0].push[item];
-                yield set;
-            }
+            let setstoadd = allSets(arrayWithoutElementAtIndex(items, itemindex), newweights);
+            returnset.concat(setstoadd.map(set => set[0].push(items[itemindex])));
         }
     }
-
+    return returnset;
 }
-
+unitTest(allSets([10], [10]), '[[10]]');
+unitTest(allSets([10,10], [10,10]), '[[10,10],[10,10]]');
+unitTest(allSets([1,2,8,9], [10,10]), '[[10,10],[10,10]]');
 function executePart1(dataset) {
-    let packageweight = dataset.reduce((a,b)=> a+b)/3;
+    let packageweight = dataset.reduce((a, b) => a + b) / 3;
     let bestsolution = [];
     let amountofPackagesInFront = Infinity;
     let smallestQuantumEntanglement = Infinity;
-    let setsgenerator = allSets(dataset, [packageweight, packageweight, packageweight]);
-    for(sets of setsgenerator){
-        if((sets[0].length < amountofPackagesInFront)
-            || (sets[0].length == amountofPackagesInFront && getQuantumEntanglement(sets[0]) < smallestQuantumEntanglement)){
+    let allsets = allSets(dataset, [packageweight, packageweight, packageweight]);
+    console.log(JSON.stringify(allsets));
+    for (sets of allsets) {
+        if ((sets[0].length < amountofPackagesInFront)
+            || (sets[0].length == amountofPackagesInFront && getQuantumEntanglement(sets[0]) < smallestQuantumEntanglement)) {
             amountofPackagesInFront = set[0].length;
             smallestQuantumEntanglement = getQuantumEntanglement(sets[0]);
             bestsolution = sets;
@@ -66,7 +65,7 @@ function executePart2(dataset) {
     return -1;
 }
 
-function execute(){ 
+function execute() {
     const { performance } = require('perf_hooks');
 
     let testdata1 = parseData('testdata.txt');
@@ -76,7 +75,7 @@ function execute(){
     if (testresult1) {
         console.log(`testdata part1: ${testresult1} (${Math.round(endtd1 - starttd1)} ms)`);
     }
-    
+
     let testdata2 = parseData('testdata.txt');
     var starttd2 = performance.now();
     let testresult2 = executePart2(testdata2);
