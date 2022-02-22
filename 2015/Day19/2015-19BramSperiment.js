@@ -27,16 +27,16 @@ function expandRules(root, rules){
 
 }
 
-function reduceMolecule(molecule, rules, set, maxlength) {
+function reduceMolecule(molecule, rules) {
     for (rule of rules) {
         let finds = [...molecule.matchAll(new RegExp(rule.by, 'g'))].map(a => a.index)
-        for (find of finds) {
+        for (find of finds.reverse()) {
             let pre = molecule.substring(0, find);
             let post = molecule.substring(find + rule.by.length, molecule.length);
-            let newword = pre + rule.replace + post
-            set.add((newword));
+            molecule = pre + rule.replace + post
         }
     }
+    return molecule;
 }
 
 function executePart1(dataset) {
@@ -83,10 +83,13 @@ function executePart2(dataset) {
     MoleculesToExplore.add(dataset[1]);
 
     let generation = 0;
+    let newmolecule = reduceMolecule(dataset[1], rules.slice(0, 39));
+
+    console.log(newmolecule);
+
     while (true) {
         let results = new Set();
         for (molecule of MoleculesToExplore) {
-            reduceMolecule(molecule, rules, results);
         }
         generation++;
 
@@ -116,21 +119,21 @@ function executePart2(dataset) {
 function execute() {
     const { performance } = require('perf_hooks');
 
-    let testdata1 = parseData('testdata.txt');
-    var starttd1 = performance.now();
-    let testresult1 = executePart1(testdata1);
-    var endtd1 = performance.now();
-    if (testresult1) {
-        console.log(`testdata part1: ${testresult1} (${Math.round(endtd1 - starttd1)} ms)`);
-    }
+    // let testdata1 = parseData('testdata.txt');
+    // var starttd1 = performance.now();
+    // let testresult1 = executePart1(testdata1);
+    // var endtd1 = performance.now();
+    // if (testresult1) {
+    //     console.log(`testdata part1: ${testresult1} (${Math.round(endtd1 - starttd1)} ms)`);
+    // }
 
-    let testdata2 = parseData('testdata.txt');
-    var starttd2 = performance.now();
-    let testresult2 = executePart2(testdata2);
-    var endtd2 = performance.now();
-    if (testresult2) {
-        console.log(`testdata part2: ${testresult2} (${Math.round(endtd2 - starttd2)} ms)`);
-    }
+    // let testdata2 = parseData('testdata.txt');
+    // var starttd2 = performance.now();
+    // let testresult2 = executePart2(testdata2);
+    // var endtd2 = performance.now();
+    // if (testresult2) {
+    //     console.log(`testdata part2: ${testresult2} (${Math.round(endtd2 - starttd2)} ms)`);
+    // }
 
     let realdata1 = parseData('data.txt');
     var startd1 = performance.now();

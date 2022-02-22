@@ -12,16 +12,53 @@ function parseData(filename) {
 
     let dataset = [];
     for (line of rawDataSet) {
-
-    dataset.push({ });
+        dataset.push(parseInt(line));
     }
 
     return dataset;
 }
+const arrayWithoutElementAtIndex = function (arr, index) {
+    return arr.slice(0, index).concat(arr.slice(index + 1))
+}
+function* allSets(items, weights){
+    if(weights.length == 0){
+        return empty;
+    }
+    for(let itemindex in items){
+        if(items[itemindex] == weights[0]){
+            let generatormatch = allSets(arrayWithoutElementAtIndex(items, itemindex), weights.slice(1));
+            for(set of generatormatch){
+                yield [item].concat(set);
+            }
+        } else if(items[itemindex] < weights[0]){
+            let newweights = weights.slice();
+            newweights[0] -= items[itemindex];
+            let generatormatch = allSets(arrayWithoutElementAtIndex(items, itemindex), newweights);
+            for(set of generatormatch){
+                set[0].push[item];
+                yield set;
+            }
+        }
+    }
+
+}
 
 function executePart1(dataset) {
- 
-    return -1;
+    let packageweight = dataset.reduce((a,b)=> a+b)/3;
+    let bestsolution = [];
+    let amountofPackagesInFront = Infinity;
+    let smallestQuantumEntanglement = Infinity;
+    let setsgenerator = allSets(dataset, [packageweight, packageweight, packageweight]);
+    for(sets of setsgenerator){
+        if((sets[0].length < amountofPackagesInFront)
+            || (sets[0].length == amountofPackagesInFront && getQuantumEntanglement(sets[0]) < smallestQuantumEntanglement)){
+            amountofPackagesInFront = set[0].length;
+            smallestQuantumEntanglement = getQuantumEntanglement(sets[0]);
+            bestsolution = sets;
+        }
+    }
+    console.log(`${amountofPackagesInFront} ${JSON.stringify(bestsolution)}`);
+    return smallestQuantumEntanglement;
 }
 
 function executePart2(dataset) {
