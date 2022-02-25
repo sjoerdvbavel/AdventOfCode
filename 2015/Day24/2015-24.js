@@ -20,40 +20,112 @@ function parseData(filename) {
 const arrayWithoutElementAtIndex = function (arr, index) {
     return arr.slice(0, index).concat(arr.slice(parseInt(index) + 1));
 }
-function allSets(items, weights) {
-    if (weights.length == 0) {
-        return [[[]]];
+// function allSets(items, weights) {
+//     if (weights.length == 0) {
+//         return [[]];
+//     }
+//     let solutionSet = [];
+//     for (let itemindex in items) {
+//         if (items[itemindex] == weights[0]) {
+//             let subsolutionSet = allSets(arrayWithoutElementAtIndex(items, itemindex), weights.slice(1));
+//             for (set of subsolutionSet) {
+//                 solutionSet.push([[items[itemindex]]].concat(set));
+//             }
+//             // returnset = returnset.concat(setsnewbins);
+//         } else if (items[itemindex] < weights[0]) {
+//             let newweights = weights.slice();
+//             newweights[0] -= items[itemindex];
+//             let setstoadd = allSets(arrayWithoutElementAtIndex(items, itemindex), newweights);
+//             for (set of setstoadd) {
+//                 set[0].push(items[itemindex]);
+//             }
+//             solutionSet = solutionSet.concat(setstoadd);
+//         }
+//     }
+//     return solutionSet;
+// }
+// unitTest(allSets([10], [10]), '[[[10]]]');
+// unitTest(allSets([10, 10], [10, 10]), '[[[10],[10]],[[10],[10]]]');
+// unitTest(allSets([1, 2, 8, 9], [10, 10]),
+//     '[[[9,1],[8,2]],[[9,1],[2,8]],[[8,2],[9,1]],[[8,2],[1,9]],[[2,8],[9,1]],[[2,8],[1,9]],[[1,9],[8,2]],[[1,9],[2,8]]]');
+
+function getSetsWithSum(items, value) {
+    if (value == 0) {
+        return [[]];
     }
-    let returnset = [];
+    let solutionSet = [];
     for (let itemindex in items) {
-        if (items[itemindex] == weights[0]) {
-            let setsnewbins = allSets(arrayWithoutElementAtIndex(items, itemindex), weights.slice(1));
-            returnset.concat(setsnewbins.map(set => set[0].push(items[itemindex])));
-        } else if (items[itemindex] < weights[0]) {
-            let newweights = weights.slice();
-            newweights[0] -= items[itemindex];
-            let setstoadd = allSets(arrayWithoutElementAtIndex(items, itemindex), newweights);
-            returnset.concat(setstoadd.map(set => set[0].push(items[itemindex])));
+        if (items[itemindex] == value) {
+            solutionSet.push([items[itemindex]]);
+        } else if (items[itemindex] < value) {
+            let partialSolutions = getSetsWithSum(items.slice(itemindex+1), value - items[itemindex]);
+            for (set of partialSolutions) {
+                solutionSet.push([items[itemindex], ...set])
+            }
         }
     }
-    return returnset;
+    return solutionSet;
 }
-unitTest(allSets([10], [10]), '[[10]]');
-unitTest(allSets([10,10], [10,10]), '[[10,10],[10,10]]');
-unitTest(allSets([1,2,8,9], [10,10]), '[[10,10],[10,10]]');
+unitTest(getSetsWithSum([10], 0), '[[]]');
+unitTest(getSetsWithSum([10], 10), '[[10]]');
+unitTest(getSetsWithSum([10, 8, 2], 10), '[[10],[8,2]]');
+unitTest(getSetsWithSum([1, 2, 8, 9], 10), '[[9,1],[8,2]]');
+
+
+function hasSum(items, sum) {
+    if (sum == 0) {
+        return true;
+    }
+    for (let itemindex in items) {
+        if (items[itemindex] < sum) {
+            let hasSolution = hasSum(arrayWithoutElementAtIndex(items, itemindex), sum - items[itemindex]);
+            if (hasSolution) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+unitTest(hasSum([10], 0), 'true');
+unitTest(hasSum([10, 2, 8], 10), 'true');
+unitTest(hasSum([1, 2, 8, 9], 12), 'false');
+
+
+//Returns whether items can be divided into 2 subsets with value as a sum.
+// \exists a,b \subset items: sum(a) == sum(b) == value;
+function hasValidDivision(items, value) {
+    if (items.reduce((a, b) => a + b) != 2 * value) {
+        return false;
+    }
+    return hasSum(items, value);
+}
+
+unitTest(hasValidDivision([5, 5], 5), 'true');
+unitTest(hasValidDivision([3, 8, 9], 10), 'false');
+unitTest(hasValidDivision([1, 2, 8, 9], 10), 'true');
+unitTest(hasValidDivision([11, 8, 3, 3, 3, 3, 3, 3, 3], 20), 'true');
+
+function getQuantumEntanglement(set) {
+    return set.reduce((a, b) => a * b, 1);
+}
+
 function executePart1(dataset) {
     let packageweight = dataset.reduce((a, b) => a + b) / 3;
     let bestsolution = [];
     let amountofPackagesInFront = Infinity;
     let smallestQuantumEntanglement = Infinity;
-    let allsets = allSets(dataset, [packageweight, packageweight, packageweight]);
-    console.log(JSON.stringify(allsets));
-    for (sets of allsets) {
-        if ((sets[0].length < amountofPackagesInFront)
-            || (sets[0].length == amountofPackagesInFront && getQuantumEntanglement(sets[0]) < smallestQuantumEntanglement)) {
-            amountofPackagesInFront = set[0].length;
-            smallestQuantumEntanglement = getQuantumEntanglement(sets[0]);
-            bestsolution = sets;
+    let sets = getSetsWithSum(dataset.sort(), packageweight);
+
+    console.log(`found: ${sets.length} sets`);
+    for (set of sets) {
+        otherItems = dataset.filter(n => !set.includes(n));
+        if (hasValidDivision(otherItems, packageweight)) {
+            if ((set.length < amountofPackagesInFront)
+                || (set.length == amountofPackagesInFront && getQuantumEntanglement(set) < smallestQuantumEntanglement)) {
+                amountofPackagesInFront = set.length;
+                smallestQuantumEntanglement = getQuantumEntanglement(set);
+                bestsolution = set;
+            }
         }
     }
     console.log(`${amountofPackagesInFront} ${JSON.stringify(bestsolution)}`);
