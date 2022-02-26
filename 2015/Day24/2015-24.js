@@ -58,7 +58,7 @@ function getSetsWithSum(items, value) {
         if (items[itemindex] == value) {
             solutionSet.push([items[itemindex]]);
         } else if (items[itemindex] < value) {
-            let partialSolutions = getSetsWithSum(items.slice(itemindex+1), value - items[itemindex]);
+            let partialSolutions = getSetsWithSum(items.slice(parseInt(itemindex)+1), value - items[itemindex]);
             for (set of partialSolutions) {
                 solutionSet.push([items[itemindex], ...set])
             }
@@ -77,7 +77,7 @@ function hasSum(items, sum) {
         return true;
     }
     for (let itemindex in items) {
-        if (items[itemindex] < sum) {
+        if (items[itemindex] <= sum) {
             let hasSolution = hasSum(arrayWithoutElementAtIndex(items, itemindex), sum - items[itemindex]);
             if (hasSolution) {
                 return true;
@@ -88,13 +88,13 @@ function hasSum(items, sum) {
 }
 unitTest(hasSum([10], 0), 'true');
 unitTest(hasSum([10, 2, 8], 10), 'true');
-unitTest(hasSum([1, 2, 8, 9], 12), 'false');
+unitTest(hasSum([9, 8, 2, 1], 12), 'true');
 
 
 //Returns whether items can be divided into 2 subsets with value as a sum.
 // \exists a,b \subset items: sum(a) == sum(b) == value;
 function hasValidDivision(items, value) {
-    if (items.reduce((a, b) => a + b) != 2 * value) {
+    if (items.reduce((a, b) => a + b, 0) != 2 * value) {
         return false;
     }
     return hasSum(items, value);
@@ -102,8 +102,31 @@ function hasValidDivision(items, value) {
 
 unitTest(hasValidDivision([5, 5], 5), 'true');
 unitTest(hasValidDivision([3, 8, 9], 10), 'false');
-unitTest(hasValidDivision([1, 2, 8, 9], 10), 'true');
+unitTest(hasValidDivision([9, 8, 2, 1], 10), 'true');
 unitTest(hasValidDivision([11, 8, 3, 3, 3, 3, 3, 3, 3], 20), 'true');
+
+function hasValidThreeWayDivision(items, value) {
+    if (items.reduce((a, b) => a + b, 0) != 3 * value) {
+        return false;
+    }
+    let setswithsum = getSetsWithSum(items, value);
+    for(set of setswithsum){
+        let otherItems = items.filter(n => !set.includes(n));
+        if(hasValidDivision(otherItems, value)){
+            return true;
+        }
+    }
+    return false;
+}
+// unitTest(hasValidThreeWayDivision([5, 5, 5], 5), 'true');
+unitTest(hasValidThreeWayDivision([10, 9, 8, 3], 10), 'false');
+unitTest(hasValidThreeWayDivision([10, 9, 8, 2, 1], 10), 'true');
+unitTest(hasValidThreeWayDivision([20, 11, 8, 3, 3, 3, 3, 3, 3, 3], 20), 'true');
+unitTest(hasValidThreeWayDivision([1, 2, 3, 5, 7, 8, 9, 10], 15), 'true');
+
+
+
+
 
 function getQuantumEntanglement(set) {
     return set.reduce((a, b) => a * b, 1);
@@ -117,7 +140,7 @@ function executePart1(dataset) {
     let sets = getSetsWithSum(dataset.sort(), packageweight);
 
     console.log(`found: ${sets.length} sets`);
-    for (set of sets) {
+    for (let set of sets) {
         otherItems = dataset.filter(n => !set.includes(n));
         if (hasValidDivision(otherItems, packageweight)) {
             if ((set.length < amountofPackagesInFront)
@@ -132,9 +155,28 @@ function executePart1(dataset) {
     return smallestQuantumEntanglement;
 }
 
-function executePart2(dataset) {
 
-    return -1;
+function executePart2(dataset) {
+    let packageweight = dataset.reduce((a, b) => a + b) / 4;
+    let bestsolution = [];
+    let amountofPackagesInFront = Infinity;
+    let smallestQuantumEntanglement = Infinity;
+    let sets = getSetsWithSum(dataset.sort(), packageweight);
+
+    console.log(`found: ${sets.length} sets`);
+    for (let set of sets) {
+        otherItems = dataset.filter(n => !set.includes(n));
+        if (hasValidThreeWayDivision(otherItems, packageweight)) {
+            if ((set.length < amountofPackagesInFront)
+                || (set.length == amountofPackagesInFront && getQuantumEntanglement(set) < smallestQuantumEntanglement)) {
+                amountofPackagesInFront = set.length;
+                smallestQuantumEntanglement = getQuantumEntanglement(set);
+                bestsolution = set;
+            }
+        }
+    }
+    console.log(`${amountofPackagesInFront} ${JSON.stringify(bestsolution)}`);
+    return smallestQuantumEntanglement;
 }
 
 function execute() {
