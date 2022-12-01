@@ -19,13 +19,12 @@ function parseData(filename) {
 }
 
 function executePart1(dataset) {
-    
     return Math.max(...dataset.map(a => a.reduce((a,b)=> a+b, 0)));
 }
 
 function executePart2(dataset) {
     let elvesTotal = dataset.map(a => a.reduce((a,b)=> a+b, 0)).sort((a,b)=>b-a).slice(0,3);
-    console.log(elvesTotal);
+    // console.log(elvesTotal);
     return elvesTotal.reduce((a,b)=> a+b, 0);
 }
 
