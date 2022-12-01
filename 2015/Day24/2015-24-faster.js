@@ -20,35 +20,6 @@ function parseData(filename) {
 const arrayWithoutElementAtIndex = function (arr, index) {
     return arr.slice(0, index).concat(arr.slice(parseInt(index) + 1));
 }
-// function allSets(items, weights) {
-//     if (weights.length == 0) {
-//         return [[]];
-//     }
-//     let solutionSet = [];
-//     for (let itemindex in items) {
-//         if (items[itemindex] == weights[0]) {
-//             let subsolutionSet = allSets(arrayWithoutElementAtIndex(items, itemindex), weights.slice(1));
-//             for (set of subsolutionSet) {
-//                 solutionSet.push([[items[itemindex]]].concat(set));
-//             }
-//             // returnset = returnset.concat(setsnewbins);
-//         } else if (items[itemindex] < weights[0]) {
-//             let newweights = weights.slice();
-//             newweights[0] -= items[itemindex];
-//             let setstoadd = allSets(arrayWithoutElementAtIndex(items, itemindex), newweights);
-//             for (set of setstoadd) {
-//                 set[0].push(items[itemindex]);
-//             }
-//             solutionSet = solutionSet.concat(setstoadd);
-//         }
-//     }
-//     return solutionSet;
-// }
-// unitTest(allSets([10], [10]), '[[[10]]]');
-// unitTest(allSets([10, 10], [10, 10]), '[[[10],[10]],[[10],[10]]]');
-// unitTest(allSets([1, 2, 8, 9], [10, 10]),
-//     '[[[9,1],[8,2]],[[9,1],[2,8]],[[8,2],[9,1]],[[8,2],[1,9]],[[2,8],[9,1]],[[2,8],[1,9]],[[1,9],[8,2]],[[1,9],[2,8]]]');
-
 function getSetsWithSum(items, value) {
     if (value == 0) {
         return [[]];
@@ -58,7 +29,7 @@ function getSetsWithSum(items, value) {
         if (items[itemindex] == value) {
             solutionSet.push([items[itemindex]]);
         } else if (items[itemindex] < value) {
-            let partialSolutions = getSetsWithSum(items.slice(parseInt(itemindex)+1), value - items[itemindex]);
+            let partialSolutions = getSetsWithSum(items.slice(parseInt(itemindex) + 1), value - items[itemindex]);
             for (set of partialSolutions) {
                 solutionSet.push([items[itemindex], ...set])
             }
@@ -110,9 +81,9 @@ function hasValidThreeWayDivision(items, value) {
         return false;
     }
     let setswithsum = getSetsWithSum(items, value);
-    for(set of setswithsum){
+    for (set of setswithsum) {
         let otherItems = items.filter(n => !set.includes(n));
-        if(hasValidDivision(otherItems, value)){
+        if (hasValidDivision(otherItems, value)) {
             return true;
         }
     }
@@ -132,51 +103,82 @@ function getQuantumEntanglement(set) {
     return set.reduce((a, b) => a * b, 1);
 }
 
-function executePart1(dataset) {
-    let packageweight = dataset.reduce((a, b) => a + b) / 3;
-    let bestsolution = [];
-    let amountofPackagesInFront = Infinity;
-    let smallestQuantumEntanglement = Infinity;
-    let sets = getSetsWithSum(dataset.sort(), packageweight);
 
-    console.log(`found: ${sets.length} sets`);
-    for (let set of sets) {
-        otherItems = dataset.filter(n => !set.includes(n));
-        if (hasValidDivision(otherItems, packageweight)) {
-            if ((set.length < amountofPackagesInFront)
-                || (set.length == amountofPackagesInFront && getQuantumEntanglement(set) < smallestQuantumEntanglement)) {
-                amountofPackagesInFront = set.length;
-                smallestQuantumEntanglement = getQuantumEntanglement(set);
-                bestsolution = set;
-            }
-        }
-    }
-    console.log(`${amountofPackagesInFront} ${JSON.stringify(bestsolution)}`);
-    return smallestQuantumEntanglement;
+//Return whether set A and set B overlap.
+function noOverlap(setA, setB) {
+    return setA.filter(n => !setB.includes(n)) != 0;
+}
+
+function Intersect(a, b) {
+    return a.filter(value => b.includes(value));
 }
 
 
-function executePart2(dataset) {
-    let packageweight = dataset.reduce((a, b) => a + b) / 4;
-    let bestsolution = [];
-    let amountofPackagesInFront = Infinity;
-    let smallestQuantumEntanglement = Infinity;
-    let sets = getSetsWithSum(dataset.sort(), packageweight);
+function hasNOtherNodes(nodeSet, size, graph) {
+    if (size == 0) {
+        return true;
+    }
+    let commonNBset = nodeSet.map(x => graph[x]).reduce((a, b) => Intersect(a, b), Object.keys(graph));
+    for (node of commonNBset) {
+        if (hasNOtherNodes([node, ...nodeSet], size - 1, graph)) {
+            return true;
+        }
+    }
+    return false;
+}
+function findBestQuantumEntanglement(numberofSets, dataset) {
+    let packageweight = dataset.reduce((a, b) => a + b) / numberofSets;
 
+    //Get all sets with sum packageweight.
+    let sets = getSetsWithSum(dataset.sort(), packageweight);
     console.log(`found: ${sets.length} sets`);
-    for (let set of sets) {
-        otherItems = dataset.filter(n => !set.includes(n));
-        if (hasValidThreeWayDivision(otherItems, packageweight)) {
-            if ((set.length < amountofPackagesInFront)
-                || (set.length == amountofPackagesInFront && getQuantumEntanglement(set) < smallestQuantumEntanglement)) {
-                amountofPackagesInFront = set.length;
-                smallestQuantumEntanglement = getQuantumEntanglement(set);
-                bestsolution = set;
+
+    //Build a graph. Nodes are linked if the sets don't overlap.
+    let setstrings = sets.map(x => JSON.stringify(x));
+    let graph = {};
+    for (setstring of setstrings) {
+        graph[setstring] = [];
+    }
+    for (setA of sets) {
+        for (setB of sets) {
+            if (setA !== setB) {
+                if (noOverlap(setA, setB)) {
+                    graph[JSON.stringify(setA)].push(JSON.stringify(setB));
+                    graph[JSON.stringify(setB)].push(JSON.stringify(setA));
+                }
             }
         }
     }
+    console.log(`Finished building graph`);
+    //Filter only nodes where 3 other non-overlapping nodes can be found.
+    let validsetstrings = setstrings.filter(x => hasNOtherNodes([x], numberofSets - 1, graph));
+    console.log(`Finished filtering graph`);
+    //Find the string with the lowest NB and quantum entanglement.
+    let bestsolution = [];
+    let amountofPackagesInFront = Infinity;
+    let smallestQuantumEntanglement = Infinity;
+
+    for (let string of validsetstrings) {
+        let set = JSON.parse(string);
+        if ((set.length < amountofPackagesInFront)
+            || (set.length == amountofPackagesInFront && getQuantumEntanglement(set) < smallestQuantumEntanglement)) {
+            amountofPackagesInFront = set.length;
+            smallestQuantumEntanglement = getQuantumEntanglement(set);
+            bestsolution = set;
+        }
+    }
+
     console.log(`${amountofPackagesInFront} ${JSON.stringify(bestsolution)}`);
     return smallestQuantumEntanglement;
+}
+function executePart1(dataset) {
+    let numberofSets = 3
+    return findBestQuantumEntanglement(numberofSets, dataset);
+}
+
+function executePart2(dataset) {
+    let numberofSets = 4
+    return findBestQuantumEntanglement(numberofSets, dataset);
 }
 
 function execute() {
