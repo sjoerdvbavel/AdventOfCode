@@ -16,6 +16,7 @@ function parseData(filename) {
     dataset.push({ });
     }
 
+    console.log(dataset.slice(0, 5));
     return dataset;
 }
 
