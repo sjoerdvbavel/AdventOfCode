@@ -1,3 +1,6 @@
+const { get } = require('https');
+const { start } = require('repl');
+
 function unitTest(array, stringvalue) {
     if (JSON.stringify(array) != stringvalue) {
         console.log(`Test failed ${JSON.stringify(array)} != ${stringvalue}`);
@@ -12,25 +15,43 @@ function parseData(filename) {
 
     let dataset = [];
     for (line of rawDataSet) {
-
-    dataset.push({ });
+        dataset.push(line.split(',').map(a => a.split('-').map(b => Number(b))));
     }
 
-    console.log(dataset.slice(0, 5));
     return dataset;
 }
 
 function executePart1(dataset) {
- 
-    return -1;
+    console.log(dataset.slice(0, 5));
+    let count = 0;
+    for (elfs of dataset) {
+        let elfZero = elfs[0];
+        let elfOne = elfs[1];
+        if (elfZero[0] >= elfOne[0] && elfZero[1] <= elfOne[1]) {
+            count++;
+        } else if (elfZero[0] <= elfOne[0] && elfZero[1] >= elfOne[1]) {
+            count++
+        }
+    }
+    return count;
 }
-
+function getOverlap(range){
+    //Check if overlap occurs
+    if(range[0][0] > range[1][1] ||range[0][1] < range[1][0]){
+        return false;
+    }
+    return true;
+}
 function executePart2(dataset) {
-
-    return -1;
+    let Overlap = 0;
+    for (elfs of dataset) {
+        if(!(elfs[0][0] > elfs[1][1] ||elfs[0][1] < elfs[1][0])) Overlap++;
+        // console.log(`${elfs[0][0]}-${elfs[0][1]} ${elfs[1][0]}-${elfs[1][1]} ${getOverlap(elfs)}`);
+    }
+    return Overlap;
 }
 
-function execute(){ 
+function execute() {
     const { performance } = require('perf_hooks');
 
     let testdata1 = parseData('testdata.txt');
@@ -40,7 +61,7 @@ function execute(){
     if (testresult1) {
         console.log(`testdata part1: ${testresult1} (${Math.round(endtd1 - starttd1)} ms)`);
     }
-    
+
     let testdata2 = parseData('testdata.txt');
     var starttd2 = performance.now();
     let testresult2 = executePart2(testdata2);

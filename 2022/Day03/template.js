@@ -13,21 +13,52 @@ function parseData(filename) {
     let dataset = [];
     for (line of rawDataSet) {
 
-    dataset.push({ });
+    dataset.push([line.slice(0, line.length/2), line.slice(line.length/2, line.length), line]);
     }
 
-    console.log(dataset.slice(0, 5));
     return dataset;
 }
-
-function executePart1(dataset) {
- 
-    return -1;
+function getCharvalue(letter){
+    if(letter.match(/[a-z]/)){
+        return  letter.charCodeAt()-64 - 32;
+    } else{
+        return letter.charCodeAt()- 71 + 33;
+    }
 }
-
+function executePart1(dataset) {
+    let priorities = 0;
+    for(rucksack of dataset){
+        let items = [];
+        for(item of rucksack[0]){
+            if(rucksack[1].includes(item)){
+                items.push(item);
+            }
+        }
+        for(commonItem of new Set(items)){
+            value = getCharvalue(commonItem)
+            priorities += value
+            // console.log(`${commonItem} ${value}`);
+        }
+    }
+    return priorities;
+}
+function getOverlap(strings){
+    let overlap = strings.pop();
+    for(string of strings){
+        overlap = overlap.filter(a => string.includes(a));
+    }
+    return [...new Set(overlap)];
+}
 function executePart2(dataset) {
-
-    return -1;
+    let badgevalues = 0;
+    for(let i =0; i < dataset.length/3; i++){
+        let lines = dataset.slice(3*i, 3*i+3).map(a => a[2].split(''));
+        let overlap = getOverlap(lines);
+        let value = getCharvalue(overlap[0]);        
+        badgevalues += value;
+        // console.log(`${overlap} ${value}`);
+    }
+    return badgevalues;
 }
 
 function execute(){ 
