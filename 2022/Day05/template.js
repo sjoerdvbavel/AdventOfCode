@@ -52,9 +52,6 @@ function executePart2(dataset) {
         stacks[move.from-1].splice(stacks[move.from-1].length - move.move, move.move);
         //Add to new stack
         stacks[move.to-1] = stacks[move.to-1].concat(cratesToMove);
-        // console.log(move);
-        // console.log(cratesToMove);
-        // console.log(stacks);
     }
     return stacks.map(a=>a[a.length-1]).join('');
 }
