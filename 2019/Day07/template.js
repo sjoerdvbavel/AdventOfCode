@@ -1,3 +1,5 @@
+const { getPackedSettings } = require('http2');
+
 function unitTest(array, stringvalue) {
     if (JSON.stringify(array) != stringvalue) {
         console.log(`Test failed ${JSON.stringify(array)} != ${stringvalue}`);
@@ -8,37 +10,37 @@ function parseData(filename) {
     var fs = require('fs');
     var path = require('path');
     var filePath = path.join(__dirname, filename);
-    var rawDataSet = fs.readFileSync(filePath).toString().split("\r\n");
+    var rawDataSet = fs.readFileSync(filePath).toString();
 
-    let dataset = [];
-    for (line of rawDataSet) {
-
-    dataset.push(line.split(''));
-    }
+    let dataset = rawDataSet.split(',').map(a=>Number(a));
 
     console.log(dataset.slice(0, 5));
     return dataset;
 }
 
+function runIntCode(program, input, setting){
+
+    return output;
+}
+
+function runSettingAndProgam(program, setting){
+    let output = 0;
+    for(value of setting){
+        output = runIntCode(program, output, value);
+    }
+    return output;
+}
+
 function executePart1(dataset) {
-    let xlim = dataset[0].length;
-    let ylim = dataset.length;
-    for (let y = 0; y < ylim; y++) {
-        for (let x = 0; x < xlim; x++) {
-            //do something
-        }
+    let 
+    for(setting of getPackedSettings()){
+        runSettingAndProgam()
     }
     return -1;
 }
 
 function executePart2(dataset) {
-    let xlim = dataset[0].length;
-    let ylim = dataset.length;
-    for (let y = 0; y < ylim; y++) {
-        for (let x = 0; x < xlim; x++) {
-            //do something
-        }
-    }
+
     return -1;
 }
 

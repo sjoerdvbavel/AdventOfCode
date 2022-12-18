@@ -1,3 +1,4 @@
+import intcode from '../Intcode';
 function unitTest(array, stringvalue) {
     if (JSON.stringify(array) != stringvalue) {
         console.log(`Test failed ${JSON.stringify(array)} != ${stringvalue}`);
@@ -8,37 +9,20 @@ function parseData(filename) {
     var fs = require('fs');
     var path = require('path');
     var filePath = path.join(__dirname, filename);
-    var rawDataSet = fs.readFileSync(filePath).toString().split("\r\n");
+    var rawDataSet = fs.readFileSync(filePath).toString().split(",");
 
-    let dataset = [];
-    for (line of rawDataSet) {
-
-    dataset.push(line.split(''));
-    }
-
+    let dataset =  rawDataSet.map(a=> Number(a));
     console.log(dataset.slice(0, 5));
     return dataset;
 }
 
 function executePart1(dataset) {
-    let xlim = dataset[0].length;
-    let ylim = dataset.length;
-    for (let y = 0; y < ylim; y++) {
-        for (let x = 0; x < xlim; x++) {
-            //do something
-        }
-    }
-    return -1;
+    
+    return intcode(dataset)[0];
 }
 
 function executePart2(dataset) {
-    let xlim = dataset[0].length;
-    let ylim = dataset.length;
-    for (let y = 0; y < ylim; y++) {
-        for (let x = 0; x < xlim; x++) {
-            //do something
-        }
-    }
+
     return -1;
 }
 
