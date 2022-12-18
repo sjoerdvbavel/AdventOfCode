@@ -12,8 +12,8 @@ function parseData(filename) {
 
     let dataset = [];
     for (line of rawDataSet) {
-
-    dataset.push(line.split(''));
+        let numbers = line.split(' -> ').map(a => a.split(',').map(b => Number(b)));
+        dataset.push(numbers);
     }
 
     console.log(dataset.slice(0, 5));
@@ -21,11 +21,38 @@ function parseData(filename) {
 }
 
 function executePart1(dataset) {
-    let xlim = dataset[0].length;
-    let ylim = dataset.length;
+    let Flatdataset = dataset.flat();
+    let maxX = Math.max(...Flatdataset.map(a=>a[0]));
+    let minX = Math.min(...Flatdataset.map(a=>a[0]));
+    let maxY = Math.max(...Flatdataset.map(a=>a[1]));
+    let minY = Math.min(...Flatdataset.map(a=>a[1]));
+
+    console.log(`Box is ${minX} - ${maxX} by ${minY} - ${maxY}`);
+    
+
+
+    let xlim = maxX - minX;
+    let ylim = maxY - maxY;
+    let field = [];
     for (let y = 0; y < ylim; y++) {
+        let row = [];
         for (let x = 0; x < xlim; x++) {
-            //do something
+            row.push('.');
+        }
+        field.push(row);
+    }
+
+    //Fill the walls:
+    for(wallset of dataset){
+        let current = wallset[0];
+
+        for(let i = 1; )
+        let xDirection = wallset[i][0] == wallset[i+1][0]?0:wallset[i][0] > wallset[i+1][0]?1:-1;
+        let yDirection = wallset[i][1] == wallset[i+1][1]?0:wallset[i][1] > wallset[i+1][1]?1:-1;
+        while(current[0] != wallset[i+1][0] && current[1] != wallset[i+1][1]){
+            current[0] += xDirection;
+            current[1] += yDirection;
+            field[current[0]][current[1]] = '#'
         }
     }
     return -1;
