@@ -44,16 +44,24 @@ function executePart1(dataset) {
 
     //Fill the walls:
     for(wallset of dataset){
+        // let wallset = dataset[wallsetIndex];
         let current = wallset[0];
-
-        for(let i = 1; )
-        let xDirection = wallset[i][0] == wallset[i+1][0]?0:wallset[i][0] > wallset[i+1][0]?1:-1;
-        let yDirection = wallset[i][1] == wallset[i+1][1]?0:wallset[i][1] > wallset[i+1][1]?1:-1;
-        while(current[0] != wallset[i+1][0] && current[1] != wallset[i+1][1]){
-            current[0] += xDirection;
-            current[1] += yDirection;
-            field[current[0]][current[1]] = '#'
+        for(pointIndex in wallset ){
+            let i = Number(pointIndex);
+            let lastPoint = wallset[i];
+            let nextPoint = wallset[i+1];
+            let xDirection = lastPoint[0] == nextPoint[0]?0:lastPoint[0] > nextPoint[0]?1:-1;
+            let yDirection = lastpoint[1] == nextPoint[1]?0:lastPoint[1] > nextPoint[1]?1:-1;
+            while(current[0] != nextPoint[0] || current[1] != nextPoint[1]){
+                current[0] += xDirection;
+                current[1] += yDirection;
+                field[current[0]][current[1]] = '#'
+            }
         }
+    }
+
+    for(row of field){
+        console.log(row.join(''));
     }
     return -1;
 }
