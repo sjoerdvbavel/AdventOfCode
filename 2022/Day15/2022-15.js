@@ -12,8 +12,8 @@ function parseData(filename) {
 
     let dataset = [];
     for (line of rawDataSet) {
-        let numbers = line.split(' -> ').map(a => a.split(',').map(b => Number(b)));
-        dataset.push(numbers);
+        let numbers = line.match(/\d+/g).map(a=>Number(a));
+        dataset.push({location:[numbers[0], numbers[1]], beacon:[numbers[2],numbers[3]]});
     }
 
     console.log(dataset.slice(0, 5));
@@ -21,59 +21,12 @@ function parseData(filename) {
 }
 
 function executePart1(dataset) {
-    let Flatdataset = dataset.flat();
-    let maxX = Math.max(...Flatdataset.map(a=>a[0]));
-    let minX = Math.min(...Flatdataset.map(a=>a[0]));
-    let maxY = Math.max(...Flatdataset.map(a=>a[1]));
-    let minY = Math.min(...Flatdataset.map(a=>a[1]));
-
-    console.log(`Box is ${minX} - ${maxX} by ${minY} - ${maxY}`);
-    
-
-
-    let xlim = maxX - minX;
-    let ylim = maxY - maxY;
-    let field = [];
-    for (let y = 0; y < ylim; y++) {
-        let row = [];
-        for (let x = 0; x < xlim; x++) {
-            row.push('.');
-        }
-        field.push(row);
-    }
-
-    //Fill the walls:
-    for(wallset of dataset){
-        // let wallset = dataset[wallsetIndex];
-        let current = wallset[0];
-        for(pointIndex in wallset ){
-            let i = Number(pointIndex);
-            let lastPoint = wallset[i];
-            let nextPoint = wallset[i+1];
-            let xDirection = lastPoint[0] == nextPoint[0]?0:lastPoint[0] > nextPoint[0]?1:-1;
-            let yDirection = lastpoint[1] == nextPoint[1]?0:lastPoint[1] > nextPoint[1]?1:-1;
-            while(current[0] != nextPoint[0] || current[1] != nextPoint[1]){
-                current[0] += xDirection;
-                current[1] += yDirection;
-                field[current[0]][current[1]] = '#'
-            }
-        }
-    }
-
-    for(row of field){
-        console.log(row.join(''));
-    }
+ 
     return -1;
 }
 
 function executePart2(dataset) {
-    let xlim = dataset[0].length;
-    let ylim = dataset.length;
-    for (let y = 0; y < ylim; y++) {
-        for (let x = 0; x < xlim; x++) {
-            //do something
-        }
-    }
+
     return -1;
 }
 
