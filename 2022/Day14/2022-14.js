@@ -32,7 +32,7 @@ function executePart1(dataset) {
 
 
     let xlim = maxX - minX;
-    let ylim = maxY - maxY;
+    let ylim = maxY - minY;
     let field = [];
     for (let y = 0; y < ylim; y++) {
         let row = [];
@@ -51,11 +51,11 @@ function executePart1(dataset) {
             let lastPoint = wallset[i];
             let nextPoint = wallset[i+1];
             let xDirection = lastPoint[0] == nextPoint[0]?0:lastPoint[0] > nextPoint[0]?1:-1;
-            let yDirection = lastpoint[1] == nextPoint[1]?0:lastPoint[1] > nextPoint[1]?1:-1;
+            let yDirection = lastPoint[1] == nextPoint[1]?0:lastPoint[1] > nextPoint[1]?1:-1;
             while(current[0] != nextPoint[0] || current[1] != nextPoint[1]){
                 current[0] += xDirection;
                 current[1] += yDirection;
-                field[current[0]][current[1]] = '#'
+                field[current[1]- minY][current[0]-minX] = '#'
             }
         }
     }

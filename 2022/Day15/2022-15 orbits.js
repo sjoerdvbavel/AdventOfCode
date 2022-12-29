@@ -79,6 +79,8 @@ function executePart1(dataset) {
     console.log(`${count} points, ${beaconCount} beacons, ${locationCount} locations`);
     return count - beaconCount;
 }
+//Attempt2 for part2
+reduceInterval
 
 function executePart2(dataset) {
     let verbose = true;

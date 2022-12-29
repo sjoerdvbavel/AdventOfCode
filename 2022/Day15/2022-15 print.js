@@ -85,7 +85,6 @@ function executePart2(dataset) {
     let frequency = -1;
     let range = dataset.length == 14?20:4000000; //if testdata, 10 else 20k.
     for(let row = 0; row < range; row++){
-        row % 100000 == 0 && console.log(`${row}`);
         let string = '';
         let intervals = getIntervals(dataset, row, false);
         for(let column = 0; column <= range; column++){
@@ -93,7 +92,6 @@ function executePart2(dataset) {
             for(interval of intervals){
                 if(column >= interval[0] && column <= interval [1]){
                     ColumnInAnInterval = true;
-                    i = interval[1];//Skip to end of interval;
                     break;//break one loop, i is in an interval.
                 }
             }
@@ -101,6 +99,13 @@ function executePart2(dataset) {
             if(!ColumnInAnInterval){
                 frequency = 4000000 * column + row;
                 console.log(`Found point ${[column,row]} frequency ${frequency}`);
+                string += '.';
+            } else if(dataset.some(a => a.beacon[0] == column && a.beacon[1] == row)){
+                string += 'B';
+            } else if(dataset.some(a => a.location[0] == column && a.location[1] == row)){
+                string += 'S';
+            } else{
+                string += '#';
             }
         }
         // verbose && console.log(string);
