@@ -79,6 +79,19 @@ function executePart1(dataset) {
     console.log(`${count} points, ${beaconCount} beacons, ${locationCount} locations`);
     return count - beaconCount;
 }
+//Return non overlapping intervals.
+overlapIntervals(intervals){
+    let workingIntervals = [intervals[0]];
+    for(let i = 1; i<= intervals.length){
+        let newInterval = intervals[i];
+        for(workingInterval of workingInterval){
+            if(workingInterval[0] <= newInterval[0] && workingInterval[1] >= newInterval[1]){
+                //New interval is contained in workinginterval;
+                break;
+            } else if(workingInterval[0] > newInterval[0])
+        }
+    }
+}
 
 function executePart2(dataset) {
     let verbose = true;
@@ -88,6 +101,7 @@ function executePart2(dataset) {
         row % 100000 == 0 && console.log(`${row}`);
         let string = '';
         let intervals = getIntervals(dataset, row, false);
+        let EfficientIntervals = overlapIntervals(intervals);
         for(let column = 0; column <= range; column++){
             let ColumnInAnInterval = false;
             for(interval of intervals){
