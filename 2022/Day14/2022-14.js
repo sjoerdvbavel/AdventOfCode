@@ -16,68 +16,131 @@ function parseData(filename) {
         dataset.push(numbers);
     }
 
-    console.log(dataset.slice(0, 5));
+    // console.log(dataset.slice(0, 5));
     return dataset;
 }
 
-function executePart1(dataset) {
+function isEmpty(row, column, field) {
+    return field[row] && field[row][column] && field[row][column] == '.';
+}
+
+function dropSand(field, source, verbose) {
+    let droplocation = source;
+    let returnobject = { atBottom: false , atSource: false};
+    if(field[source[0]][source[1]] == 'o'){
+        verbose && console.log(`atSource ${source}`);
+        returnobject.atSource = true;
+        return returnobject;
+    }
+    while (true) {
+        if (droplocation[0] == field.length-1) {
+            verbose && console.log(`Drop reached below field at ${droplocation}`);
+            returnobject.atBottom = true;
+        } else if (droplocation[1] < 0) {
+            verbose && console.log(`Drop reached left of field at ${droplocation}`);
+            return 'error';
+        }
+        if (isEmpty(droplocation[0]+1, droplocation[1], field)) {//Fall below
+            droplocation[0]++;
+        } else if (isEmpty(droplocation[0] + 1, droplocation[1] - 1, field)) {//Fall to left
+            droplocation[0]++;
+            droplocation[1] -= 1;
+        } else if (isEmpty(droplocation[0] + 1, droplocation[1] + 1, field)) {//Fall to right
+            droplocation[0]++;
+            droplocation[1] += 1;
+        } else {//stopped
+            field[droplocation[0]][droplocation[1]] = 'o';
+            verbose && console.log(`Drop stopped at ${droplocation}`);
+            return returnobject;
+        }
+    }
+}
+
+function drawField(dataset, padding){
     let Flatdataset = dataset.flat();
-    let maxX = Math.max(...Flatdataset.map(a=>a[0]));
-    let minX = Math.min(...Flatdataset.map(a=>a[0]));
-    let maxY = Math.max(...Flatdataset.map(a=>a[1]));
-    let minY = Math.min(...Flatdataset.map(a=>a[1]));
+    let maxColumn = Math.max(...Flatdataset.map(a => a[0])) + padding;
+    let minColumn = Math.min(...Flatdataset.map(a => a[0])) - padding;
+    let maxRow = Math.max(...Flatdataset.map(a => a[1])) + 1;
+    let minRow = 0;
 
-    console.log(`Box is ${minX} - ${maxX} by ${minY} - ${maxY}`);
-    
+    console.log(`Box is ${minColumn} - ${maxColumn} by ${minRow} - ${maxRow}`);
 
 
-    let xlim = maxX - minX;
-    let ylim = maxY - maxY;
+
+    let ColumnLim = maxColumn - minColumn;
+    let RowLim = maxRow - minRow;
     let field = [];
-    for (let y = 0; y < ylim; y++) {
+    for (let y = 0; y <= RowLim; y++) {
         let row = [];
-        for (let x = 0; x < xlim; x++) {
+        for (let x = 0; x <= ColumnLim; x++) {
             row.push('.');
         }
         field.push(row);
     }
 
     //Fill the walls:
-    for(wallset of dataset){
+    for (wallset of dataset) {
         // let wallset = dataset[wallsetIndex];
         let current = wallset[0];
-        for(pointIndex in wallset ){
-            let i = Number(pointIndex);
+        for (let i = 0; i < wallset.length - 1; i++) {
             let lastPoint = wallset[i];
-            let nextPoint = wallset[i+1];
-            let xDirection = lastPoint[0] == nextPoint[0]?0:lastPoint[0] > nextPoint[0]?1:-1;
-            let yDirection = lastpoint[1] == nextPoint[1]?0:lastPoint[1] > nextPoint[1]?1:-1;
-            while(current[0] != nextPoint[0] || current[1] != nextPoint[1]){
-                current[0] += xDirection;
-                current[1] += yDirection;
-                field[current[0]][current[1]] = '#'
+            let nextPoint = wallset[i + 1];
+            let ColumnDirection = lastPoint[0] == nextPoint[0] ? 0 : lastPoint[0] > nextPoint[0] ? -1 : 1;
+            let RowDirection = lastPoint[1] == nextPoint[1] ? 0 : lastPoint[1] > nextPoint[1] ? -1 : 1;
+            field[current[1] - minRow][current[0] - minColumn] = '#'
+            while (current[0] != nextPoint[0] || current[1] != nextPoint[1]) {
+                current[0] += ColumnDirection;
+                current[1] += RowDirection;
+                field[current[1] - minRow][current[0] - minColumn] = '#'
             }
         }
     }
+    return [field, minColumn];
+}
 
-    for(row of field){
+function executePart1(dataset) {
+    let padding = 5;
+    let returnobject = drawField(dataset, padding);
+    let field = returnobject[0];
+    let minColumn = returnobject[1];
+    let Finished = false;
+    let i = 0;
+    while(!Finished) {
+        result = dropSand(field, [0, 500 - minColumn], false);
+        Finished = result.atBottom;
+        if (!Finished) {
+            i++;
+        }
+    }
+
+    for (row of field) {
         console.log(row.join(''));
     }
-    return -1;
+    return i;
 }
 
 function executePart2(dataset) {
-    let xlim = dataset[0].length;
-    let ylim = dataset.length;
-    for (let y = 0; y < ylim; y++) {
-        for (let x = 0; x < xlim; x++) {
-            //do something
+    let padding = 200;
+    let returnobject = drawField(dataset, padding);
+    let field = returnobject[0];
+    let minColumn = returnobject[1];    
+    let Finished = false;
+    let i = 0;
+    while(!Finished) {
+        result = dropSand(field, [0, 500 - minColumn], false);
+        Finished = result.atSource;
+        if (!Finished) {
+            i++;
         }
     }
-    return -1;
+
+    for (row of field) {
+        console.log(row.join(''));
+    }
+    return i;
 }
 
-function execute(){ 
+function execute() {
     const { performance } = require('perf_hooks');
 
     let testdata1 = parseData('testdata.txt');
@@ -87,7 +150,7 @@ function execute(){
     if (testresult1) {
         console.log(`testdata part1: ${testresult1} (${Math.round(endtd1 - starttd1)} ms)`);
     }
-    
+
     let testdata2 = parseData('testdata.txt');
     var starttd2 = performance.now();
     let testresult2 = executePart2(testdata2);
