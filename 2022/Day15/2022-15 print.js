@@ -79,35 +79,19 @@ function executePart1(dataset) {
     console.log(`${count} points, ${beaconCount} beacons, ${locationCount} locations`);
     return count - beaconCount;
 }
-//Return non overlapping intervals.
-overlapIntervals(intervals){
-    let workingIntervals = [intervals[0]];
-    for(let i = 1; i<= intervals.length){
-        let newInterval = intervals[i];
-        for(workingInterval of workingInterval){
-            if(workingInterval[0] <= newInterval[0] && workingInterval[1] >= newInterval[1]){
-                //New interval is contained in workinginterval;
-                break;
-            } else if(workingInterval[0] > newInterval[0])
-        }
-    }
-}
 
 function executePart2(dataset) {
     let verbose = true;
     let frequency = -1;
     let range = dataset.length == 14?20:4000000; //if testdata, 10 else 20k.
     for(let row = 0; row < range; row++){
-        row % 100000 == 0 && console.log(`${row}`);
         let string = '';
         let intervals = getIntervals(dataset, row, false);
-        let EfficientIntervals = overlapIntervals(intervals);
         for(let column = 0; column <= range; column++){
             let ColumnInAnInterval = false;
             for(interval of intervals){
                 if(column >= interval[0] && column <= interval [1]){
                     ColumnInAnInterval = true;
-                    i = interval[1];//Skip to end of interval;
                     break;//break one loop, i is in an interval.
                 }
             }
@@ -115,6 +99,13 @@ function executePart2(dataset) {
             if(!ColumnInAnInterval){
                 frequency = 4000000 * column + row;
                 console.log(`Found point ${[column,row]} frequency ${frequency}`);
+                string += '.';
+            } else if(dataset.some(a => a.beacon[0] == column && a.beacon[1] == row)){
+                string += 'B';
+            } else if(dataset.some(a => a.location[0] == column && a.location[1] == row)){
+                string += 'S';
+            } else{
+                string += '#';
             }
         }
         // verbose && console.log(string);
