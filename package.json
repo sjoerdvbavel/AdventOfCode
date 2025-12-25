@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "create-day": "node scripts/createDay.js",
+    "run-day": "node scripts/runDay.js"
   },
   "repository": {
     "type": "git",

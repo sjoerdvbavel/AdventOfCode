@@ -8,7 +8,7 @@ function parseData(filename) {
     var fs = require('fs');
     var path = require('path');
     var filePath = path.join(__dirname, filename);
-    var rawDataSet = fs.readFileSync(filePath).toString().split("\r\n");
+    var rawDataSet = fs.readFileSync(filePath).toString().split("\n");
 
     let dataset = [];
     for (line of rawDataSet) {
