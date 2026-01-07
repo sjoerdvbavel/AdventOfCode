@@ -54,10 +54,14 @@ function executePart1(dataset) {
     return totalSplits;
 }
 
-
+function getkey(a, b){
+    return a + ',' + b
+}
 function executePart2(dataset) {
     let maxGen = dataset.length;
     let maxLine = dataset[0].length
+
+    let map = new Map();
     function getNumberOfTimeLines(gen, index){
         // console.log(`checking out ${gen}. ${index}`);
         if(gen == maxGen) return 1;
@@ -67,8 +71,14 @@ function executePart2(dataset) {
             gen++;
             if(gen == maxGen) return 1;
         }
-        return getNumberOfTimeLines(gen, index-1) 
+        if(map.has(getkey(gen, index))){
+            return map.get(getkey(gen, index));
+        }
+        let output =  getNumberOfTimeLines(gen, index-1) 
         + getNumberOfTimeLines(gen, index + 1);
+        
+        map.set(getkey(gen, index), output);
+        return output; 
     }
     let sIndex = dataset[0].indexOf('S')
     // console.log(`S at ${sIndex}`);
